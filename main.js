@@ -61,17 +61,19 @@ function getMouseDocument(evt,cnv) {
  * loads all the needed files, then calls startGame to begin the game
  */
 function loadAssets() {	
-	//global list of script assets and current script number
-	scriptFiles = ["Button.js"];
-	scriptNum = 0;
+	//global list of assets and current asset number
+	requiredFiles = ["Button.js","Dragon.js","dragon.png"];
+	assetNum = 0;
 	
 	//global list of script contents
 	scripts = {}
+	//global list of images
+	images = {}
 	
 	//quick and dirty way to store local text files as JS objects
 	object = null;
 	
-	loadAsset(scriptFiles,0);
+	loadAsset();
 }
 
 /**
@@ -80,23 +82,34 @@ function loadAssets() {
 function loadAsset() {
 	//if the global object var contains a string, append it to the global scripts list
 	if (object != null) {
-		scripts[scriptFiles[scriptNum-1]] = object;
+		scripts[requiredFiles[assetNum-1]] = object;
 		object = null;
 	}
 	//once we've loaded all the objects, we are ready to start the game
-	if (scriptNum >= scriptFiles.length) {
+	if (assetNum >= requiredFiles.length) {
 		return startGame();
 	}
 	
-	//load the desired script file
-	var elem = document.createElement('script');
-	elem.type = 'text/javascript';
-	elem.onload = loadAsset;
-	elem.src = scriptFiles[scriptNum];
+	//get the element type from its file extension
+	var splitName = requiredFiles[assetNum].split(".");
+	var extension = splitName[splitName.length-1];
+	var elemType = (extension == "js" ? "script" : "IMG")
 	
-	//add the new script to the body and increment the script count
-	document.body.appendChild(elem);
-	++scriptNum;
+	//create the new element
+	var elem = document.createElement(elemType);
+	elem.onload = loadAsset;
+	elem.src = requiredFiles[assetNum];
+	
+	//add the new element to the body if its a script
+	if (elemType == "script") {
+		document.body.appendChild(elem);
+	}
+	//add the new element to the image dict if its an image
+	else if (elemType == "IMG") {
+		images[requiredFiles[assetNum]] = elem;
+	}
+	
+	++assetNum;
 }
 
 /**
@@ -129,6 +142,9 @@ function update() {
 function render() {
 	//clear all canvases for a fresh render
 	clearScreen();
+	
+	//draw dragon
+	context.drawImage(images["dragon.png"],dragon.x,dragon.y);
 }
 
 /**
@@ -161,6 +177,10 @@ function startGame() {
 	//init global game vars
 	canvas = document.getElementById("canvas");
 	context = canvas.getContext("2d");
+	
+	//create game objects
+	dragon = new Dragon(400,300);
+	
 	//set the game to call the 'update' method on each tick
 	_intervalId = setInterval(update, 1000 / fps);
 }
