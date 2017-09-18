@@ -62,7 +62,7 @@ function getMouseDocument(evt,cnv) {
  */
 function loadAssets() {	
 	//global list of assets and current asset number
-	requiredFiles = ["Button.js","Dragon.js","dragon.png"];
+	requiredFiles = ["Button.js","Dragon.js","Bat.js","dragon.png","bat.png"];
 	assetNum = 0;
 	
 	//global list of script contents
@@ -145,6 +145,9 @@ function render() {
 	
 	//draw dragon
 	context.drawImage(images["dragon.png"],dragon.x,dragon.y);
+
+	//draw bat
+	context.drawImage(images["bat.png"],bat.x,bat.y);
 }
 
 /**
@@ -180,6 +183,7 @@ function startGame() {
 	
 	//create game objects
 	dragon = new Dragon(400,300);
+	bat = new Bat(500,300);
 	
 	//set the game to call the 'update' method on each tick
 	_intervalId = setInterval(update, 1000 / fps);
