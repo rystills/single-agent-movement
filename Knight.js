@@ -2,7 +2,8 @@
  * update the knight
  */
 Knight.prototype.update = function() {
-	console.log("knight update");
+	this.rot = (this.rot + this.angVel * deltaTime) % 360;
+	moveForward(this);
 }
 
 /**
@@ -15,4 +16,7 @@ function Knight(x,y) {
 	this.state = "wander";
 	this.x = x;
 	this.y = y;
+	this.rot = 0;
+	this.vel = 200;
+	this.angVel = 300;
 }

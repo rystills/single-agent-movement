@@ -2,7 +2,8 @@
  * update the dragon
  */
 Dragon.prototype.update = function() {
-	console.log("dragon update");
+	this.rot = (this.rot + this.angVel * deltaTime) % 360;
+	moveForward(this);
 }
 
 /**
@@ -15,4 +16,7 @@ function Dragon(x,y) {
 	this.state = "wander";
 	this.x = x;
 	this.y = y;
+	this.rot = 0;
+	this.vel = 50;
+	this.angVel = 75;
 }

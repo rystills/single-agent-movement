@@ -130,6 +130,11 @@ function update() {
 	--scrollX;
 	--scrollY;
 	
+	//update objects
+	dragon.update();
+	bat.update();
+	knight.update();
+	
 	//once all updates are out of the way, render the frame
 	render();
 	
@@ -155,13 +160,44 @@ function render() {
 	}
 	
 	//draw dragon
-	context.drawImage(images["dragon.png"],dragon.x,dragon.y);
+	drawCentered("dragon.png",dragon.x,dragon.y,dragon.rot);
 
 	//draw bat
-	context.drawImage(images["bat.png"],bat.x,bat.y);
+	drawCentered("bat.png",bat.x,bat.y,bat.rot);
 
 	//draw knight
-	context.drawImage(images["knight.png"],knight.x,knight.y);
+	drawCentered("knight.png",knight.x,knight.y,knight.rot);
+}
+
+/**
+ * move the specified object forward
+ * @param obj: the object to move forward
+ */
+function moveForward(obj) {
+	obj.x += Math.cos(obj.rot * Math.PI/180) * obj.vel * deltaTime;
+	obj.y += Math.sin(obj.rot * Math.PI/180) * obj.vel * deltaTime;
+}
+
+/**
+ * draw an image centered around the specified coordinates, with an optional arbitrary rotation
+ * @param imageName: the name of the image to draw
+ * @param x: the center x coordinate at which to draw the image
+ * @param y: the center x coordinate at which to draw the image
+ * @param rot: if specified, the amount in degrees by which to rotate the image
+ */
+function drawCentered(imageName,x,y,rot) {
+	var img = images[imageName];
+	if (rot != 0) {
+		context.save();
+		//perform the inverse of the object's translation and rotation, to mimick rotation the object itself
+		context.translate(x,y);
+		context.rotate(rot*Math.PI/180);
+	}
+	context.drawImage(img, -(img.width/2), -(img.height/2));
+	if (rot != 0) {
+		//restore the canvas if we modified it
+		context.restore();
+	}
 }
 
 /**
@@ -200,7 +236,7 @@ function startGame() {
 	//create game objects
 	dragon = new Dragon(400,300);
 	bat = new Bat(500,300);
-	knight = new Knight(200,300);
+	knight = new Knight(100,300);
 	
 	//set the game to call the 'update' method on each tick
 	_intervalId = setInterval(update, 1000 / fps);

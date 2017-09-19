@@ -2,7 +2,8 @@
  * update the bat
  */
 Bat.prototype.update = function() {
-	console.log("bat update");
+	this.rot = (this.rot + this.angVel * deltaTime) % 360;
+	moveForward(this);
 }
 
 /**
@@ -15,4 +16,7 @@ function Bat(x,y) {
 	this.state = "wander";
 	this.x = x;
 	this.y = y;
+	this.rot = 0;
+	this.vel = 40;
+	this.angVel = 50;
 }
