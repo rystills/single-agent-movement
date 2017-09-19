@@ -117,7 +117,8 @@ function loadAsset() {
  * @param parentName: the name of the parent object
  */
 function makeChild(objectName, parentName) {
-	eval(objectName + ".prototype = Object.create(" + parentName + ".prototype);" + objectName + ".prototype.constructor = " + objectName + ";");
+	eval(objectName + ".prototype = Object.create(" + parentName + ".prototype);" + 
+			objectName + ".prototype.constructor = " + objectName + ";");
 }
 
 /**
@@ -152,6 +153,34 @@ function update() {
 }
 
 /**
+ * get the angle between two points
+ * @param x1: the x coordinate of the first point
+ * @param y1: the y coordinate of the first point
+ * @param x2: the x coordinate of the second point
+ * @param y2: the y coordinate of the second point
+ * @param radians: whether the angle is in radians (true) or degrees (false)
+ * @returns the angle between the two input points
+ */
+function getAngle(x1,y1,x2,y2,radians) {
+	if (radians == null || radians == false) {
+		return Math.atan2((y2-y1),(x2-x1))*180/Math.PI;
+	}
+	return Math.atan2((y2-y1),(x2-x1));
+}
+
+/**
+ * get a random integer between min (inclusive) and max (exclusive)
+ * @param min: the inclusive minimum integer value
+ * @param max: the exclusive maximum integer value
+ * @returns the randomly generated integer between min and max
+ */
+function getRandomInt(min, max) {
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min)) + min;
+}
+
+/**
  * render all objects and HUD elements
  */
 function render() {
@@ -183,6 +212,12 @@ function render() {
 	
 	for (var i = 0; i < objects.length; ++i) {
 		context.fillText(objects[i].imageName.split(".")[0] + " algo: " + objects[i].state,5*(i+1) + (350*i),textHeight);	
+	}
+	
+	//display destination of each npc's current algorithm
+	for (var i = 0; i < objects.length; ++i) {
+		context.fillRect(objects[i].dest.x - 5, objects[i].dest.y - 5, 5,5);
+		console.log(objects[i].dest)
 	}
 	
 }

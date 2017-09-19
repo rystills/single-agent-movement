@@ -2,9 +2,25 @@
  * update the actor
  */
 Actor.prototype.update = function() {
-	//placeholder update: passivel spin at a rate of angAccel while moving forward
-	this.spin(this.angAccel);
-	this.moveForward(this.accel);
+	//update the current state
+	if (this.state == "wander") {
+		this.wander();
+	}
+}
+
+/**
+ * wander to a random point on a circle around this Actor, then choose a new point
+ */
+Actor.prototype.wander = function() {
+	if (this.dest == null) {
+		//choose a new point around us by generating the x between -rad and rad, then solving for y
+		var xLen = getRandomInt(0,this.wanderRadius);
+		var yLen = Math.sqrt(this.wanderRadius*this.wanderRadius - xLen*xLen);
+		var xSign = getRandomInt(0,2) == 1 ? -1 : 1;
+		var ySign = getRandomInt(0,2) == 1 ? -1 : 1;
+		this.dest = {x: this.x + xLen*xSign, y: this.y + yLen*ySign};
+	}
+	this.rot = getAngle(this.x,this.y,this.dest.x,this.dest.y);
 }
 
 /**
@@ -12,7 +28,6 @@ Actor.prototype.update = function() {
  * @param amt: the amount by which to spin the actor
  */
 Actor.prototype.spin = function(amt) {
-	console.log(amt)
 	this.rot = (this.rot + amt * deltaTime) % 360;
 }
 
@@ -54,7 +69,6 @@ function Actor(x,y,rot,accel, maxVel, angAccel, angMaxVel) {
 	}
 	
 	//initialize all of our properties
-	this.state = "wander";
 	this.x = x;
 	this.y = y;
 	this.rot = rot;
@@ -64,4 +78,9 @@ function Actor(x,y,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.angMaxVel = angMaxVel;
 	this.vel = 0;
 	this.angVel = 0;
+	
+	//state related vars
+	this.state = "wander";
+	this.wanderRadius = 75;
+	this.dest = null;
 }
