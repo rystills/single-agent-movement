@@ -18,8 +18,19 @@ Actor.prototype.wander = function() {
 		var yLen = Math.sqrt(this.wanderRadius*this.wanderRadius - xLen*xLen);
 		var xSign = getRandomInt(0,2) == 1 ? -1 : 1;
 		var ySign = getRandomInt(0,2) == 1 ? -1 : 1;
+		
+		//move the circle forward by a fixed amount
+		var curX = this.x;
+		var curY = this.y;
+		this.moveForward(this.wanderDistance,true);
+		console.log(curX + ", " + this.x)
+		
 		this.dest = {x: this.x + xLen*xSign, y: this.y + yLen*ySign};
 		this.wanderCenter = {x:this.x,y:this.y};
+		
+		//move back now that we've set the circle location
+		this.x = curX;
+		this.y = curY;
 	}
 	this.rot = getAngle(this.x,this.y,this.dest.x,this.dest.y);
 }
@@ -27,18 +38,28 @@ Actor.prototype.wander = function() {
 /**
  * spin the actor by the specified amount, shifted by deltaTime
  * @param amt: the amount by which to spin the actor
+ * @param isAbsolute: whether the amount to rotate is absolute (true) or relative to deltaTime (false).
+ * if unspecified, isAbsolute defaults to false.
  */
-Actor.prototype.spin = function(amt) {
-	this.rot = (this.rot + amt * deltaTime) % 360;
+Actor.prototype.spin = function(amt,isAbsolute) {
+	if (isAbsolute == null) {
+		isAbsolute = false;
+	}
+	this.rot = (this.rot + amt * (isAbsolute ? 1 : deltaTime)) % 360;
 }
 
 /**
  * move the actor forward by the specified amount, shifted by deltaTime
  * @param amt: the amount by which to move the actor
+ * @param isAbsolute: whether the amount to move is absolute (true) or relative to deltaTime (false).
+ * if unspecified, isAbsolute defaults to false.
  */
-Actor.prototype.moveForward = function(amt) {
-	this.x += Math.cos(this.rot * Math.PI/180) * amt * deltaTime;
-	this.y += Math.sin(this.rot * Math.PI/180) * amt * deltaTime;
+Actor.prototype.moveForward = function(amt,isAbsolute) {
+	if (isAbsolute == null) {
+		isAbsolute = false;
+	}
+	this.x += Math.cos(this.rot * Math.PI/180) * amt * (isAbsolute ? 1 : deltaTime);
+	this.y += Math.sin(this.rot * Math.PI/180) * amt * (isAbsolute ? 1 : deltaTime);
 }
 
 /**
@@ -82,7 +103,8 @@ function Actor(x,y,rot,accel, maxVel, angAccel, angMaxVel) {
 	
 	//state related vars
 	this.state = "wander";
-	this.wanderRadius = 150;
+	this.wanderRadius = 40;
+	this.wanderDistance = 125;
 	this.dest = null;
 	this.wanderCenter = null;
 }
