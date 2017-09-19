@@ -20,7 +20,7 @@ function setupKeyListeners() {
 	
 	document.body.addEventListener("mousemove", function (e) {
 		//store the relative mouse position for each canvas
-		canvas.mousePos = getMouseDocument(e,canvas);
+		canvas.mousePos = getMouseDocument(e);
 	});
 	document.body.addEventListener("mousedown", function (e) {
 		if (e.button == 0) {
@@ -49,11 +49,10 @@ function setupKeyListeners() {
 /**
  * get the position of the mouse in the document
  * @param evt: the currently processing event
- * @param cnv: the canvas to check mouse position against
  * @returns an object containing the x,y coordinates of the mouse
  */
-function getMouseDocument(evt,cnv) {
-	 var rect = cnv.getBoundingClientRect();
+function getMouseDocument(evt) {
+	 var rect = canvas.getBoundingClientRect();
 	 return {x: evt.clientX - rect.left, y: evt.clientY - rect.top};	
 }
 
@@ -150,7 +149,7 @@ function render() {
 	//clear all canvases for a fresh render
 	clearScreen();
 	
-	//draw background tiles covering the entire screen (1 tile buffer on each side to cover scrolling)
+	//draw background tiles covering the entire screen (1 tile buffer to make scrolling seamless)
 	var negX = Math.sign(scrollX) == -1;
 	var negY = Math.sign(scrollY) == -1;
 	for (var i = -negX; i < (canvas.width/256) + 1-negX; ++i) {
@@ -167,6 +166,22 @@ function render() {
 
 	//draw knight
 	drawCentered("knight.png",knight.x,knight.y,knight.rot);
+	
+	//draw a darkened bar to make the GUI more readable
+	context.fillStyle = "rgba(0,0,0,.5)";
+	context.fillRect(0,0,canvas.width,40);
+	
+	//display each npc's current algorithm
+	context.font = "30px Arial";
+	var textHeight = 30;
+	context.fillStyle = "#FFFFFF";
+	
+	var npcs = [dragon,bat,knight];
+	var npcNames = ["dragon","bat","knight"]
+	for (var i = 0; i < npcs.length; ++i) {
+		context.fillText(npcNames[i] + " algo: " + npcs[i].state,5*(i+1) + (350*i),textHeight);	
+	}
+	
 }
 
 /**
