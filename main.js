@@ -130,14 +130,39 @@ function clearScreen() {
 }
 
 /**
+ * scroll the view if the user is pressing an arrow key or WASD
+ */
+function checkScroll() {
+	//scroll right
+	if (keyStates[String.fromCharCode(39)] || keyStates["D"]) {
+		scrollX += 300*deltaTime;
+	}
+	
+	//scroll left
+	if (keyStates[String.fromCharCode(37)] || keyStates["A"]) {
+		scrollX -= 300*deltaTime;
+	}
+	
+	//scroll down
+	if (keyStates[String.fromCharCode(40)] || keyStates["S"]) {
+		scrollY += 300*deltaTime;
+	}
+	
+	//scroll up
+	if (keyStates[String.fromCharCode(38)] || keyStates["W"]) {
+		scrollY -= 300*deltaTime;
+	}
+}
+
+/**
  * main game loop; update all aspects of the game in-order
  */
 function update() {
 	//update the deltaTime
 	updateTime();
 	
-	scrollX -= 100 * deltaTime;
-	scrollY -= 100 * deltaTime;
+	//if the user is pressing the arrow keys or WASD, scroll the view
+	checkScroll();
 	
 	//update objects
 	for (var i = 0; i < objects.length; ++i) {
@@ -198,7 +223,7 @@ function render() {
 	
 	//draw objets
 	for (var i = 0; i < objects.length; ++i) {
-		drawCentered(objects[i].imageName,objects[i].x,objects[i].y,objects[i].rot);
+		drawCentered(objects[i].imageName,objects[i].x - scrollX,objects[i].y - scrollY,objects[i].rot);
 	}
 	
 	//draw a darkened bar to make the GUI more readable
@@ -221,15 +246,15 @@ function render() {
 			context.strokeStyle = objects[i].debugColor;
 			context.beginPath();
 			context.lineWidth=5;
-			context.arc(objects[i].wanderCenter.x,objects[i].wanderCenter.y,objects[i].wanderRadius,0,2*Math.PI);
+			context.arc(objects[i].wanderCenter.x - scrollX,objects[i].wanderCenter.y - scrollY,objects[i].wanderRadius,0,2*Math.PI);
 			context.stroke();
-			context.arc(objects[i].dest.x,objects[i].dest.y,15,0,2*Math.PI);
+			context.arc(objects[i].dest.x - scrollX,objects[i].dest.y - scrollY,15,0,2*Math.PI);
 			context.closePath();
 			
 			//draw dest point on wander circle
 			context.fillStyle = objects[i].debugColor;
 			context.beginPath();
-			context.arc(objects[i].dest.x,objects[i].dest.y,15,0,2*Math.PI);
+			context.arc(objects[i].dest.x - scrollX,objects[i].dest.y - scrollY,15,0,2*Math.PI);
 			context.fill();
 			context.closePath();
 		}
