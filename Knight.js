@@ -8,4 +8,5 @@ makeChild("Knight","Actor")
 function Knight(x,y,rot,accel, maxVel, angAccel, angMaxVel) {
 	Actor.call(this,x,y,rot,accel,maxVel,angAccel,angMaxVel);
 	this.imageName = "knight.png";
+	this.debugColor = "#BBBBBB";
 }

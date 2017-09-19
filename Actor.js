@@ -19,6 +19,7 @@ Actor.prototype.wander = function() {
 		var xSign = getRandomInt(0,2) == 1 ? -1 : 1;
 		var ySign = getRandomInt(0,2) == 1 ? -1 : 1;
 		this.dest = {x: this.x + xLen*xSign, y: this.y + yLen*ySign};
+		this.wanderCenter = {x:this.x,y:this.y};
 	}
 	this.rot = getAngle(this.x,this.y,this.dest.x,this.dest.y);
 }
@@ -81,6 +82,7 @@ function Actor(x,y,rot,accel, maxVel, angAccel, angMaxVel) {
 	
 	//state related vars
 	this.state = "wander";
-	this.wanderRadius = 75;
+	this.wanderRadius = 150;
 	this.dest = null;
+	this.wanderCenter = null;
 }

@@ -216,8 +216,23 @@ function render() {
 	
 	//display destination of each npc's current algorithm
 	for (var i = 0; i < objects.length; ++i) {
-		context.fillRect(objects[i].dest.x - 5, objects[i].dest.y - 5, 5,5);
-		console.log(objects[i].dest)
+		if (objects[i].state == "wander") {
+			//wander state: draw wander circle
+			context.strokeStyle = objects[i].debugColor;
+			context.beginPath();
+			context.lineWidth=5;
+			context.arc(objects[i].wanderCenter.x,objects[i].wanderCenter.y,objects[i].wanderRadius,0,2*Math.PI);
+			context.stroke();
+			context.arc(objects[i].dest.x,objects[i].dest.y,15,0,2*Math.PI);
+			context.closePath();
+			
+			//draw dest point on wander circle
+			context.fillStyle = objects[i].debugColor;
+			context.beginPath();
+			context.arc(objects[i].dest.x,objects[i].dest.y,15,0,2*Math.PI);
+			context.fill();
+			context.closePath();
+		}
 	}
 	
 }

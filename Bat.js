@@ -8,4 +8,5 @@ makeChild("Bat","Actor")
 function Bat(x,y,rot,accel, maxVel, angAccel, angMaxVel) {
 	Actor.call(this,x,y,rot,accel,maxVel,angAccel,angMaxVel);
 	this.imageName = "bat.png";
+	this.debugColor = "#DD4400";
 }

@@ -8,4 +8,5 @@ makeChild("Dragon","Actor")
 function Dragon(x,y,rot,accel, maxVel, angAccel, angMaxVel) {
 	Actor.call(this,x,y,rot,accel,maxVel,angAccel,angMaxVel);
 	this.imageName = "dragon.png";
+	this.debugColor = "#22FF00";
 }
