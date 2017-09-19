@@ -61,7 +61,7 @@ function getMouseDocument(evt) {
  */
 function loadAssets() {	
 	//global list of assets and current asset number
-	requiredFiles = ["Button.js","Dragon.js","Bat.js","Knight.js","dragon.png","bat.png","knight.png", "floor.png"];
+	requiredFiles = ["Actor.js","Button.js","Dragon.js","Bat.js","Knight.js","dragon.png","bat.png","knight.png", "floor.png"];
 	assetNum = 0;
 	
 	//global list of script contents
@@ -112,6 +112,15 @@ function loadAsset() {
 }
 
 /**
+ * make the input object a child of the specified parent object
+ * @param objectName: the name of the child object being given inheritance
+ * @param parentName: the name of the parent object
+ */
+function makeChild(objectName, parentName) {
+	eval(objectName + ".prototype = Object.create(" + parentName + ".prototype);" + objectName + ".prototype.constructor = " + objectName + ";");
+}
+
+/**
  * clear the entire screen to black, preparing it for a fresh render
  */
 function clearScreen() {
@@ -126,13 +135,13 @@ function update() {
 	//update the deltaTime
 	updateTime();
 	
-	--scrollX;
-	--scrollY;
+	scrollX -= 100 * deltaTime;
+	scrollY -= 100 * deltaTime;
 	
 	//update objects
-	dragon.update();
-	bat.update();
-	knight.update();
+	for (var i = 0; i < objects.length; ++i) {
+		objects[i].update();
+	}
 	
 	//once all updates are out of the way, render the frame
 	render();
@@ -158,14 +167,10 @@ function render() {
 		}
 	}
 	
-	//draw dragon
-	drawCentered("dragon.png",dragon.x,dragon.y,dragon.rot);
-
-	//draw bat
-	drawCentered("bat.png",bat.x,bat.y,bat.rot);
-
-	//draw knight
-	drawCentered("knight.png",knight.x,knight.y,knight.rot);
+	//draw objets
+	for (var i = 0; i < objects.length; ++i) {
+		drawCentered(objects[i].imageName,objects[i].x,objects[i].y,objects[i].rot);
+	}
 	
 	//draw a darkened bar to make the GUI more readable
 	context.fillStyle = "rgba(0,0,0,.5)";
@@ -176,21 +181,10 @@ function render() {
 	var textHeight = 30;
 	context.fillStyle = "#FFFFFF";
 	
-	var npcs = [dragon,bat,knight];
-	var npcNames = ["dragon","bat","knight"]
-	for (var i = 0; i < npcs.length; ++i) {
-		context.fillText(npcNames[i] + " algo: " + npcs[i].state,5*(i+1) + (350*i),textHeight);	
+	for (var i = 0; i < objects.length; ++i) {
+		context.fillText(objects[i].imageName.split(".")[0] + " algo: " + objects[i].state,5*(i+1) + (350*i),textHeight);	
 	}
 	
-}
-
-/**
- * move the specified object forward
- * @param obj: the object to move forward
- */
-function moveForward(obj) {
-	obj.x += Math.cos(obj.rot * Math.PI/180) * obj.vel * deltaTime;
-	obj.y += Math.sin(obj.rot * Math.PI/180) * obj.vel * deltaTime;
 }
 
 /**
@@ -202,17 +196,15 @@ function moveForward(obj) {
  */
 function drawCentered(imageName,x,y,rot) {
 	var img = images[imageName];
+	context.save();
+	//perform the inverse of the object's translation to effectively bring it to the origin
+	context.translate(x,y);
 	if (rot != 0) {
-		context.save();
-		//perform the inverse of the object's translation and rotation, to mimick rotation the object itself
-		context.translate(x,y);
 		context.rotate(rot*Math.PI/180);
 	}
 	context.drawImage(img, -(img.width/2), -(img.height/2));
-	if (rot != 0) {
-		//restore the canvas if we modified it
-		context.restore();
-	}
+	//restore the canvas now that we're done modifying it
+	context.restore();
 }
 
 /**
@@ -249,9 +241,10 @@ function startGame() {
 	scrollY = 0;
 	
 	//create game objects
-	dragon = new Dragon(400,300);
-	bat = new Bat(500,300);
-	knight = new Knight(100,300);
+	objects = [];
+	objects.push(new Dragon(400,300));
+	objects.push(new Bat(500,300));
+	objects.push(new Knight(100,300));
 	
 	//set the game to call the 'update' method on each tick
 	_intervalId = setInterval(update, 1000 / fps);
