@@ -62,7 +62,7 @@ function getMouseDocument(evt,cnv) {
  */
 function loadAssets() {	
 	//global list of assets and current asset number
-	requiredFiles = ["Button.js","Dragon.js","Bat.js","dragon.png","bat.png"];
+	requiredFiles = ["Button.js","Dragon.js","Bat.js","Knight.js","dragon.png","bat.png","knight.png", "floor.png"];
 	assetNum = 0;
 	
 	//global list of script contents
@@ -127,6 +127,8 @@ function update() {
 	//update the deltaTime
 	updateTime();
 	
+	--scrollX;
+	--scrollY;
 	
 	//once all updates are out of the way, render the frame
 	render();
@@ -143,11 +145,23 @@ function render() {
 	//clear all canvases for a fresh render
 	clearScreen();
 	
+	//draw background tiles covering the entire screen (1 tile buffer on each side to cover scrolling)
+	var negX = Math.sign(scrollX) == -1;
+	var negY = Math.sign(scrollY) == -1;
+	for (var i = -negX; i < (canvas.width/256) + 1-negX; ++i) {
+		for (var r = -negY; r < (canvas.height/256) + 1-negY; ++r) {
+			context.drawImage(images["floor.png"],i*256 - (scrollX % 256),r*256 - (scrollY % 256));
+		}
+	}
+	
 	//draw dragon
 	context.drawImage(images["dragon.png"],dragon.x,dragon.y);
 
 	//draw bat
 	context.drawImage(images["bat.png"],bat.x,bat.y);
+
+	//draw knight
+	context.drawImage(images["knight.png"],knight.x,knight.y);
 }
 
 /**
@@ -180,10 +194,13 @@ function startGame() {
 	//init global game vars
 	canvas = document.getElementById("canvas");
 	context = canvas.getContext("2d");
+	scrollX = 0;
+	scrollY = 0;
 	
 	//create game objects
 	dragon = new Dragon(400,300);
 	bat = new Bat(500,300);
+	knight = new Knight(200,300);
 	
 	//set the game to call the 'update' method on each tick
 	_intervalId = setInterval(update, 1000 / fps);
