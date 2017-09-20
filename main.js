@@ -67,7 +67,10 @@ function getMouseDocument(evt,cnv) {
  */
 function loadAssets() {	
 	//global list of assets and current asset number
-	requiredFiles = ["Actor.js","Button.js","Dragon.js","Bat.js","Knight.js","dragon.png","bat.png","knight.png", "floor.png"];
+	requiredFiles = ["Actor.js","Button.js","Dragon.js","Bat.js","Knight.js",
+		"dragon.png","bat.png","knight.png", "floorBlue.png","floorPurple.png","floorGreen.png"];
+	floorNames = ["floorBlue.png","floorPurple.png","floorGreen.png"]
+	
 	assetNum = 0;
 	
 	//global list of script contents
@@ -234,7 +237,7 @@ function render() {
 	for (var j = 0; j < canvases.length-1; ++j) {
 		for (var i = -negX; i < (canvases[j].width/200) + 1-negX; ++i) {
 			for (var r = -negY; r < (canvases[j].height/200) + 1-negY; ++r) {
-				contexts[j].drawImage(images["floor.png"],i*200 - (scrollX % 200),r*200 - (scrollY % 200));
+				contexts[j].drawImage(images[floorNames[j]],i*200 - (scrollX % 200),r*200 - (scrollY % 200));
 			}
 		}
 	}
