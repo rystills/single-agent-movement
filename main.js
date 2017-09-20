@@ -16,11 +16,16 @@ function setupKeyListeners() {
 	mousePressedLeft = false;
 	mouseDownRight = false;
 	mousePressedRight = false;
-	canvas.mousePos = {x:0,y:0};
+	topLeft.mousePos = {x:0,y:0};
+	topRight.mousePos = {x:0,y:0};
+	botLeft.mousePos = {x:0,y:0};
+	botRight.mousePos = {x:0,y:0};
 	
 	document.body.addEventListener("mousemove", function (e) {
 		//store the relative mouse position for each canvas
-		canvas.mousePos = getMouseDocument(e);
+		for (var i = 0; i < canvases.length; ++i) {
+			canvases[i].mousePos = getMouseDocument(e,canvases[i]);
+		}
 	});
 	document.body.addEventListener("mousedown", function (e) {
 		if (e.button == 0) {
@@ -49,10 +54,11 @@ function setupKeyListeners() {
 /**
  * get the position of the mouse in the document
  * @param evt: the currently processing event
+ * @param cnv: the canvas to check mouse position against
  * @returns an object containing the x,y coordinates of the mouse
  */
-function getMouseDocument(evt) {
-	 var rect = canvas.getBoundingClientRect();
+function getMouseDocument(evt,cnv) {
+	 var rect = cnv.getBoundingClientRect();
 	 return {x: evt.clientX - rect.left, y: evt.clientY - rect.top};	
 }
 
@@ -122,11 +128,20 @@ function makeChild(objectName, parentName) {
 }
 
 /**
- * clear the entire screen to black, preparing it for a fresh render
+ * clear all canvases to black, preparing them for a fresh render
  */
 function clearScreen() {
-	context.fillStyle="#000000";
-	context.fillRect(0,0,canvas.width,canvas.height);
+	topLeftCtx.fillStyle="#000000";
+	topLeftCtx.fillRect(0,0,topLeft.width,topLeft.height);
+	
+	topRightCtx.fillStyle="#000000";
+	topRightCtx.fillRect(0,0,topRight.width,topRight.height);
+	
+	botLeftCtx.fillStyle="#000000";
+	botLeftCtx.fillRect(0,0,botLeft.width,botLeft.height);
+	
+	botRightCtx.fillStyle="#000000";
+	botRightCtx.fillRect(0,0,botRight.width,botRight.height);
 }
 
 /**
@@ -215,9 +230,12 @@ function render() {
 	//draw background tiles covering the entire screen (1 tile buffer to make scrolling seamless)
 	var negX = Math.sign(scrollX) == -1;
 	var negY = Math.sign(scrollY) == -1;
-	for (var i = -negX; i < (canvas.width/256) + 1-negX; ++i) {
-		for (var r = -negY; r < (canvas.height/256) + 1-negY; ++r) {
-			context.drawImage(images["floor.png"],i*256 - (scrollX % 256),r*256 - (scrollY % 256));
+	//ignore the final canvas, as the UI should not scroll
+	for (var j = 0; j < canvases.length-1; ++j) {
+		for (var i = -negX; i < (canvases[j].width/200) + 1-negX; ++i) {
+			for (var r = -negY; r < (canvases[j].height/200) + 1-negY; ++r) {
+				contexts[j].drawImage(images["floor.png"],i*200 - (scrollX % 200),r*200 - (scrollY % 200));
+			}
 		}
 	}
 	
@@ -227,36 +245,36 @@ function render() {
 	}
 	
 	//draw a darkened bar to make the GUI more readable
-	context.fillStyle = "rgba(0,0,0,.5)";
-	context.fillRect(0,0,canvas.width,40);
+	/*botRightCtx.fillStyle = "rgba(0,0,0,.5)";
+	botRightCtx.fillRect(0,0,botRight.width,40);*/
 	
 	//display each npc's current algorithm
-	context.font = "30px Arial";
+	botRightCtx.font = "30px Arial";
 	var textHeight = 30;
-	context.fillStyle = "#FFFFFF";
+	botRightCtx.fillStyle = "#FFFFFF";
 	
 	for (var i = 0; i < objects.length; ++i) {
-		context.fillText(objects[i].imageName.split(".")[0] + " algo: " + objects[i].state,5*(i+1) + (350*i),textHeight);	
+		botRightCtx.fillText(objects[i].imageName.split(".")[0] + " algo: " + objects[i].state,5,textHeight * (i+1));	
 	}
 	
 	//display destination of each npc's current algorithm
 	for (var i = 0; i < objects.length; ++i) {
 		if (objects[i].state == "wander") {
 			//wander state: draw wander circle
-			context.strokeStyle = objects[i].debugColor;
-			context.beginPath();
-			context.lineWidth=5;
-			context.arc(objects[i].wanderCenter.x - scrollX,objects[i].wanderCenter.y - scrollY,objects[i].wanderRadius,0,2*Math.PI);
-			context.stroke();
-			context.arc(objects[i].dest.x - scrollX,objects[i].dest.y - scrollY,15,0,2*Math.PI);
-			context.closePath();
+			topLeftCtx.strokeStyle = objects[i].debugColor;
+			topLeftCtx.beginPath();
+			topLeftCtx.lineWidth=5;
+			topLeftCtx.arc(objects[i].wanderCenter.x - scrollX,objects[i].wanderCenter.y - scrollY,objects[i].wanderRadius,0,2*Math.PI);
+			topLeftCtx.stroke();
+			topLeftCtx.arc(objects[i].dest.x - scrollX,objects[i].dest.y - scrollY,15,0,2*Math.PI);
+			topLeftCtx.closePath();
 			
 			//draw dest point on wander circle
-			context.fillStyle = objects[i].debugColor;
-			context.beginPath();
-			context.arc(objects[i].dest.x - scrollX,objects[i].dest.y - scrollY,15,0,2*Math.PI);
-			context.fill();
-			context.closePath();
+			topLeftCtx.fillStyle = objects[i].debugColor;
+			topLeftCtx.beginPath();
+			topLeftCtx.arc(objects[i].dest.x - scrollX,objects[i].dest.y - scrollY,15,0,2*Math.PI);
+			topLeftCtx.fill();
+			topLeftCtx.closePath();
 		}
 	}
 	
@@ -271,15 +289,15 @@ function render() {
  */
 function drawCentered(imageName,x,y,rot) {
 	var img = images[imageName];
-	context.save();
+	topLeftCtx.save();
 	//perform the inverse of the object's translation to effectively bring it to the origin
-	context.translate(x,y);
+	topLeftCtx.translate(x,y);
 	if (rot != 0) {
-		context.rotate(rot*Math.PI/180);
+		topLeftCtx.rotate(rot*Math.PI/180);
 	}
-	context.drawImage(img, -(img.width/2), -(img.height/2));
+	topLeftCtx.drawImage(img, -(img.width/2), -(img.height/2));
 	//restore the canvas now that we're done modifying it
-	context.restore();
+	topLeftCtx.restore();
 }
 
 /**
@@ -310,8 +328,17 @@ function startGame() {
 	totalTime = 0;
 	
 	//init global game vars
-	canvas = document.getElementById("canvas");
-	context = canvas.getContext("2d");
+	topLeft = document.getElementById("topLeft");
+	topLeftCtx = topLeft.getContext("2d");
+	topRight = document.getElementById("topRight");
+	topRightCtx = topRight.getContext("2d");
+	botLeft = document.getElementById("botLeft");
+	botLeftCtx = botLeft.getContext("2d");
+	botRight= document.getElementById("botRight");
+	botRightCtx = botRight.getContext("2d");
+	canvases = [topLeft,topRight,botLeft,botRight];
+	contexts = [topLeftCtx,topRightCtx,botLeftCtx,botRightCtx];
+	
 	scrollX = 0;
 	scrollY = 0;
 	

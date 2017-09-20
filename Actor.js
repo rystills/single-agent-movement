@@ -19,11 +19,10 @@ Actor.prototype.wander = function() {
 		var xSign = getRandomInt(0,2) == 1 ? -1 : 1;
 		var ySign = getRandomInt(0,2) == 1 ? -1 : 1;
 		
-		//move the circle forward by a fixed amount
+		//move forward by a fixed amount so we can place the circle around this new location
 		var curX = this.x;
 		var curY = this.y;
 		this.moveForward(this.wanderDistance,true);
-		console.log(curX + ", " + this.x)
 		
 		this.dest = {x: this.x + xLen*xSign, y: this.y + yLen*ySign};
 		this.wanderCenter = {x:this.x,y:this.y};
