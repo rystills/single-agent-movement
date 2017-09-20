@@ -67,8 +67,8 @@ function getMouseDocument(evt,cnv) {
  */
 function loadAssets() {	
 	//global list of assets and current asset number
-	requiredFiles = ["Actor.js","Button.js","Dragon.js","Bat.js","Knight.js", "Path.js",
-		"dragon.png","bat.png","knight.png", "tileGrayscale.png"];
+	requiredFiles = ["Actor.js","Button.js","Dragon.js","Bat.js","Knight.js", "Arrow.js","Path.js",
+		"dragon.png","bat.png","knight.png", "arrow.png","tileGrayscale.png"];
 	
 	assetNum = 0;
 	
@@ -133,13 +133,13 @@ function makeChild(objectName, parentName) {
  * clear all canvases to their respective fill colors, preparing them for a fresh render
  */
 function clearScreen() {
-	topLeftCtx.fillStyle="#0000FF";
+	topLeftCtx.fillStyle="rgb(40,120,255)";
 	topLeftCtx.fillRect(0,0,topLeft.width,topLeft.height);
 	
-	topRightCtx.fillStyle="#005500";
+	topRightCtx.fillStyle="rgb(140,20,255)";
 	topRightCtx.fillRect(0,0,topRight.width,topRight.height);
 	
-	botLeftCtx.fillStyle="#AA0000";
+	botLeftCtx.fillStyle="rgb(35,150,35)";
 	botLeftCtx.fillRect(0,0,botLeft.width,botLeft.height);
 	
 	botRightCtx.fillStyle="#000000";
@@ -262,14 +262,15 @@ function render() {
 		botRightCtx.fillText(objects[i].imageName.split(".")[0] + " algorithm: " + objects[i].state,5,textHeight * (i+1));	
 	}
 	
-	//display destination of each npc's current algorithm
+	//display info about each npc's current algorithm
 	for (var i = 0; i < objects.length; ++i) {
 		var ctx = objects[i].canvas.getContext("2d");
+		ctx.lineWidth=5;
+		//object is wandering: display wander radius and destination point
 		if (objects[i].state == "wander") {
 			//wander state: draw wander circle
 			ctx.strokeStyle = objects[i].debugColor;
 			ctx.beginPath();
-			ctx.lineWidth=5;
 			ctx.arc(objects[i].wanderCenter.x - objects[i].canvas.scrollX,
 					objects[i].wanderCenter.y - objects[i].canvas.scrollY,objects[i].wanderRadius,0,2*Math.PI);
 			ctx.stroke();
@@ -284,6 +285,35 @@ function render() {
 					objects[i].dest.y - objects[i].canvas.scrollY,15,0,2*Math.PI);
 			ctx.fill();
 			ctx.closePath();
+		}
+		
+		//object is following a path: display connected series of path points
+		else if (objects[i].state == "follow path") {
+			var points = objects[i].path.points;
+			
+			//draw lines connecting the path
+			ctx.beginPath();
+			ctx.moveTo(points[0][0],points[0][1]);
+			for (var r = 1; r < points.length; ++r) {
+				ctx.lineTo(points[r][0],points[r][1]);
+				ctx.stroke();
+			}
+			if (objects[i].path.loop) {
+				ctx.lineTo(points[0][0],points[0][1]);
+				ctx.stroke();
+			}
+			ctx.closePath();
+			
+			//draw the points on the path
+			ctx.fillStyle = "#FF0000";
+			for (var r = 0; r < points.length; ++r) {
+				ctx.beginPath();
+				ctx.arc(points[r][0] - objects[i].canvas.scrollX,
+						points[r][1] - objects[i].canvas.scrollY,
+						8,0,2*Math.PI);
+				ctx.fill();
+				ctx.closePath();
+			}
 		}
 	}
 	
@@ -330,6 +360,7 @@ function updateTime() {
  */
 function startGame() {
 	initGlobals();
+
 	//set the game to call the 'update' method on each tick
 	_intervalId = setInterval(update, 1000 / fps);
 }
@@ -369,6 +400,7 @@ function initGlobals() {
 	objects.push(new Dragon(400,300,topLeft));
 	objects.push(new Bat(500,300,topLeft));
 	objects.push(new Knight(100,300,topRight));
+	objects.push(new Arrow(200,200,botLeft));
 }
 
 loadAssets();
