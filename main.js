@@ -153,22 +153,22 @@ function clearScreen() {
 function checkScroll() {
 	//scroll right
 	if (keyStates[String.fromCharCode(39)] || keyStates["D"]) {
-		scrollX += 300*deltaTime;
+		topLeft.scrollX += 300*deltaTime;
 	}
 	
 	//scroll left
 	if (keyStates[String.fromCharCode(37)] || keyStates["A"]) {
-		scrollX -= 300*deltaTime;
+		topLeft.scrollX -= 300*deltaTime;
 	}
 	
 	//scroll down
 	if (keyStates[String.fromCharCode(40)] || keyStates["S"]) {
-		scrollY += 300*deltaTime;
+		topLeft.scrollY += 300*deltaTime;
 	}
 	
 	//scroll up
 	if (keyStates[String.fromCharCode(38)] || keyStates["W"]) {
-		scrollY -= 300*deltaTime;
+		topLeft.scrollY -= 300*deltaTime;
 	}
 }
 
@@ -231,10 +231,12 @@ function render() {
 	clearScreen();
 	
 	//draw background tiles covering the entire screen (1 tile buffer to make scrolling seamless)
-	var negX = Math.sign(scrollX) == -1;
-	var negY = Math.sign(scrollY) == -1;
 	//ignore the final canvas, as the UI should not scroll
 	for (var j = 0; j < canvases.length-1; ++j) {
+		var scrollX = canvases[j].scrollX;
+		var scrollY = canvases[j].scrollY;
+		var negX = Math.sign(scrollX) == -1;
+		var negY = Math.sign(scrollY) == -1;
 		for (var i = -negX; i < (canvases[j].width/200) + 1-negX; ++i) {
 			for (var r = -negY; r < (canvases[j].height/200) + 1-negY; ++r) {
 				contexts[j].drawImage(images[floorNames[j]],i*200 - (scrollX % 200),r*200 - (scrollY % 200));
@@ -242,9 +244,10 @@ function render() {
 		}
 	}
 	
-	//draw objets
+	//draw objects
 	for (var i = 0; i < objects.length; ++i) {
-		drawCentered(objects[i].imageName,objects[i].canvas.getContext("2d"),objects[i].x - scrollX,objects[i].y - scrollY,objects[i].rot);
+		drawCentered(objects[i].imageName,objects[i].canvas.getContext("2d"),
+				objects[i].x - objects[i].canvas.scrollX,objects[i].y - objects[i].canvas.scrollY,objects[i].rot);
 	}
 	
 	//draw a darkened bar to make the GUI more readable
@@ -268,15 +271,18 @@ function render() {
 			ctx.strokeStyle = objects[i].debugColor;
 			ctx.beginPath();
 			ctx.lineWidth=5;
-			ctx.arc(objects[i].wanderCenter.x - scrollX,objects[i].wanderCenter.y - scrollY,objects[i].wanderRadius,0,2*Math.PI);
+			ctx.arc(objects[i].wanderCenter.x - objects[i].canvas.scrollX,
+					objects[i].wanderCenter.y - objects[i].canvas.scrollY,objects[i].wanderRadius,0,2*Math.PI);
 			ctx.stroke();
-			ctx.arc(objects[i].dest.x - scrollX,objects[i].dest.y - scrollY,15,0,2*Math.PI);
+			ctx.arc(objects[i].dest.x - objects[i].canvas.scrollX,
+					objects[i].dest.y - objects[i].canvas.scrollY,15,0,2*Math.PI);
 			ctx.closePath();
 			
 			//draw dest point on wander circle
 			ctx.fillStyle = objects[i].debugColor;
 			ctx.beginPath();
-			ctx.arc(objects[i].dest.x - scrollX,objects[i].dest.y - scrollY,15,0,2*Math.PI);
+			ctx.arc(objects[i].dest.x - objects[i].canvas.scrollX,
+					objects[i].dest.y - objects[i].canvas.scrollY,15,0,2*Math.PI);
 			ctx.fill();
 			ctx.closePath();
 		}
@@ -321,9 +327,18 @@ function updateTime() {
 }
 
 /**
- * sets the fps and begins the main update loop; to be called after resource loading
+ * calls initGlobals and begins the main update loop; to be called after resource loading
  */
 function startGame() {
+	initGlobals();
+	//set the game to call the 'update' method on each tick
+	_intervalId = setInterval(update, 1000 / fps);
+}
+
+/**
+ * initialize all global variables
+ */
+function initGlobals() {
 	//keep a global fps flag for game-speed (although all speeds should use deltaTime)
 	fps = 60;
 	
@@ -344,18 +359,18 @@ function startGame() {
 	canvases = [topLeft,topRight,botLeft,botRight];
 	contexts = [topLeftCtx,topRightCtx,botLeftCtx,botRightCtx];
 	
-	scrollX = 0;
-	scrollY = 0;
+	//reset camera position for all canvases
+	for (var i = 0; i < canvases.length; ++i) {
+		canvases[i].scrollX = 0;
+		canvases[i].scrollY = 0;
+	}
 	
 	//create game objects
 	objects = [];
 	objects.push(new Dragon(400,300,topLeft));
 	objects.push(new Bat(500,300,topLeft));
 	objects.push(new Knight(100,300,topRight));
-	
-	//set the game to call the 'update' method on each tick
-	_intervalId = setInterval(update, 1000 / fps);
 }
 
-setupKeyListeners();
 loadAssets();
+setupKeyListeners();
