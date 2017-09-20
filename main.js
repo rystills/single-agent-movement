@@ -244,7 +244,7 @@ function render() {
 	
 	//draw objets
 	for (var i = 0; i < objects.length; ++i) {
-		drawCentered(objects[i].imageName,objects[i].x - scrollX,objects[i].y - scrollY,objects[i].rot);
+		drawCentered(objects[i].imageName,objects[i].canvas.getContext("2d"),objects[i].x - scrollX,objects[i].y - scrollY,objects[i].rot);
 	}
 	
 	//draw a darkened bar to make the GUI more readable
@@ -257,27 +257,28 @@ function render() {
 	botRightCtx.fillStyle = "#FFFFFF";
 	
 	for (var i = 0; i < objects.length; ++i) {
-		botRightCtx.fillText(objects[i].imageName.split(".")[0] + " algo: " + objects[i].state,5,textHeight * (i+1));	
+		botRightCtx.fillText(objects[i].imageName.split(".")[0] + " algorithm: " + objects[i].state,5,textHeight * (i+1));	
 	}
 	
 	//display destination of each npc's current algorithm
 	for (var i = 0; i < objects.length; ++i) {
+		var ctx = objects[i].canvas.getContext("2d");
 		if (objects[i].state == "wander") {
 			//wander state: draw wander circle
-			topLeftCtx.strokeStyle = objects[i].debugColor;
-			topLeftCtx.beginPath();
-			topLeftCtx.lineWidth=5;
-			topLeftCtx.arc(objects[i].wanderCenter.x - scrollX,objects[i].wanderCenter.y - scrollY,objects[i].wanderRadius,0,2*Math.PI);
-			topLeftCtx.stroke();
-			topLeftCtx.arc(objects[i].dest.x - scrollX,objects[i].dest.y - scrollY,15,0,2*Math.PI);
-			topLeftCtx.closePath();
+			ctx.strokeStyle = objects[i].debugColor;
+			ctx.beginPath();
+			ctx.lineWidth=5;
+			ctx.arc(objects[i].wanderCenter.x - scrollX,objects[i].wanderCenter.y - scrollY,objects[i].wanderRadius,0,2*Math.PI);
+			ctx.stroke();
+			ctx.arc(objects[i].dest.x - scrollX,objects[i].dest.y - scrollY,15,0,2*Math.PI);
+			ctx.closePath();
 			
 			//draw dest point on wander circle
-			topLeftCtx.fillStyle = objects[i].debugColor;
-			topLeftCtx.beginPath();
-			topLeftCtx.arc(objects[i].dest.x - scrollX,objects[i].dest.y - scrollY,15,0,2*Math.PI);
-			topLeftCtx.fill();
-			topLeftCtx.closePath();
+			ctx.fillStyle = objects[i].debugColor;
+			ctx.beginPath();
+			ctx.arc(objects[i].dest.x - scrollX,objects[i].dest.y - scrollY,15,0,2*Math.PI);
+			ctx.fill();
+			ctx.closePath();
 		}
 	}
 	
@@ -286,21 +287,22 @@ function render() {
 /**
  * draw an image centered around the specified coordinates, with an optional arbitrary rotation
  * @param imageName: the name of the image to draw
+ * @param ctx: the context onto which to draw the image
  * @param x: the center x coordinate at which to draw the image
  * @param y: the center x coordinate at which to draw the image
  * @param rot: if specified, the amount in degrees by which to rotate the image
  */
-function drawCentered(imageName,x,y,rot) {
+function drawCentered(imageName,ctx,x,y,rot) {
 	var img = images[imageName];
-	topLeftCtx.save();
+	ctx.save();
 	//perform the inverse of the object's translation to effectively bring it to the origin
-	topLeftCtx.translate(x,y);
+	ctx.translate(x,y);
 	if (rot != 0) {
-		topLeftCtx.rotate(rot*Math.PI/180);
+		ctx.rotate(rot*Math.PI/180);
 	}
-	topLeftCtx.drawImage(img, -(img.width/2), -(img.height/2));
+	ctx.drawImage(img, -(img.width/2), -(img.height/2));
 	//restore the canvas now that we're done modifying it
-	topLeftCtx.restore();
+	ctx.restore();
 }
 
 /**
@@ -347,9 +349,9 @@ function startGame() {
 	
 	//create game objects
 	objects = [];
-	objects.push(new Dragon(400,300));
-	objects.push(new Bat(500,300));
-	objects.push(new Knight(100,300));
+	objects.push(new Dragon(400,300,topLeft));
+	objects.push(new Bat(500,300,topLeft));
+	objects.push(new Knight(100,300,topRight));
 	
 	//set the game to call the 'update' method on each tick
 	_intervalId = setInterval(update, 1000 / fps);
