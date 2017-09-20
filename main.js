@@ -67,9 +67,8 @@ function getMouseDocument(evt,cnv) {
  */
 function loadAssets() {	
 	//global list of assets and current asset number
-	requiredFiles = ["Actor.js","Button.js","Dragon.js","Bat.js","Knight.js",
-		"dragon.png","bat.png","knight.png", "floorBlue.png","floorPurple.png","floorGreen.png"];
-	floorNames = ["floorBlue.png","floorPurple.png","floorGreen.png"]
+	requiredFiles = ["Actor.js","Button.js","Dragon.js","Bat.js","Knight.js", "Path.js",
+		"dragon.png","bat.png","knight.png", "tileGrayscale.png"];
 	
 	assetNum = 0;
 	
@@ -131,16 +130,16 @@ function makeChild(objectName, parentName) {
 }
 
 /**
- * clear all canvases to black, preparing them for a fresh render
+ * clear all canvases to their respective fill colors, preparing them for a fresh render
  */
 function clearScreen() {
-	topLeftCtx.fillStyle="#000000";
+	topLeftCtx.fillStyle="#0000FF";
 	topLeftCtx.fillRect(0,0,topLeft.width,topLeft.height);
 	
-	topRightCtx.fillStyle="#000000";
+	topRightCtx.fillStyle="#005500";
 	topRightCtx.fillRect(0,0,topRight.width,topRight.height);
 	
-	botLeftCtx.fillStyle="#000000";
+	botLeftCtx.fillStyle="#AA0000";
 	botLeftCtx.fillRect(0,0,botLeft.width,botLeft.height);
 	
 	botRightCtx.fillStyle="#000000";
@@ -239,7 +238,7 @@ function render() {
 		var negY = Math.sign(scrollY) == -1;
 		for (var i = -negX; i < (canvases[j].width/200) + 1-negX; ++i) {
 			for (var r = -negY; r < (canvases[j].height/200) + 1-negY; ++r) {
-				contexts[j].drawImage(images[floorNames[j]],i*200 - (scrollX % 200),r*200 - (scrollY % 200));
+				contexts[j].drawImage(images["tileGrayscale.png"],i*200 - (scrollX % 200),r*200 - (scrollY % 200));
 			}
 		}
 	}
