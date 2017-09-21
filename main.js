@@ -261,7 +261,11 @@ function render() {
 	botRightCtx.fillStyle = "#FFFFFF";
 	
 	for (var i = 0; i < objects.length; ++i) {
-		botRightCtx.fillText(objects[i].imageName.split(".")[0] + " algorithm: " + objects[i].state,5,textHeight * (i+1));	
+		var state = objects[i].state;
+		if ((objects[i].state == "pursue" || objects[i].state == "evade") && objects[i].alerted == false) {
+			state = "approaching gold";
+		}
+		botRightCtx.fillText(objects[i].imageName.split(".")[0] + " algorithm: " + state,5,textHeight * (i+1));	
 	}
 	
 	//display info about each npc's current algorithm
@@ -421,10 +425,12 @@ function initGlobals() {
 	
 	//create the bat and dragon
 	objects.push(new Dragon(400,300,topLeft));
-	objects.push(new Bat(500,300,topLeft));
+	objects.push(new Bat(700,300,topLeft));
 	//once the bat and dragon have been created, set them to be each others' targets
 	objects[1].target = objects[2];
 	objects[2].target = objects[1];
+	objects[1].home = objects[0];
+	objects[2].home = objects[0];
 	objects.push(new Knight(100,300,topRight));
 	objects.push(new Arrow(200,200,botLeft));
 }

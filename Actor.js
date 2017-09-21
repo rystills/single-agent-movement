@@ -22,9 +22,39 @@ Actor.prototype.update = function() {
  * run away from the target Actor
  */
 Actor.prototype.evade = function() {
-	if (getDistance(this.x,this.y,this.target.x,this.target.y) < this.maxEvadeDistance) {
-		this.rot = 180 + getAngle(this.x,this.y,this.target.x,this.target.y);
-		this.moveForward(this.accel*140);	
+	if (!this.alerted) {
+		if (getDistance(this.x,this.y,this.target.x,this.target.y) < this.alertEvadeDistance) {
+			this.alerted = true;
+		}
+		else {
+			this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
+			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
+			if (remDist > this.accel*100 * deltaTime) {
+				this.moveForward(this.accel*100);	
+			}
+			else {
+				this.x = this.home.x;
+				this.y = this.home.y;
+			}
+		}
+	}
+	if (this.alerted) {
+		if (getDistance(this.x,this.y,this.target.x,this.target.y) < this.maxEvadeDistance) {
+			this.rot = 180 + getAngle(this.x,this.y,this.target.x,this.target.y);
+			this.moveForward(this.accel*140);	
+		}
+		else {
+			this.alerted = false;
+			this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
+			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
+			if (remDist > this.accel*100 * deltaTime) {
+				this.moveForward(this.accel*100);	
+			}
+			else {
+				this.x = this.home.x;
+				this.y = this.home.y;
+			}
+		}	
 	}
 }
 
@@ -32,9 +62,39 @@ Actor.prototype.evade = function() {
  * pursue the target Actor
  */
 Actor.prototype.pursue = function() {
-	if (getDistance(this.x,this.y,this.target.x,this.target.y) < this.maxPursueDistance) {
-		this.rot = getAngle(this.x,this.y,this.target.x,this.target.y);
-		this.moveForward(this.accel*115);	
+	if (!this.alerted) {
+		if (getDistance(this.x,this.y,this.target.x,this.target.y) < this.alertPursueDistance) {
+			this.alerted = true;
+		}
+		else {
+			this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
+			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
+			if (remDist > this.accel*90 * deltaTime) {
+				this.moveForward(this.accel*90);	
+			}
+			else {
+				this.x = this.home.x;
+				this.y = this.home.y;
+			}	
+		}
+	}
+	if (this.alerted) {
+		if (getDistance(this.x,this.y,this.target.x,this.target.y) < this.maxPursueDistance) {
+			this.rot = getAngle(this.x,this.y,this.target.x,this.target.y);
+			this.moveForward(this.accel*115);	
+		}
+		else {
+			this.alerted = false;
+			this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
+			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
+			if (remDist > this.accel*90 * deltaTime) {
+				this.moveForward(this.accel*90);	
+			}
+			else {
+				this.x = this.home.x;
+				this.y = this.home.y;
+			}
+		}	
 	}
 }
 
@@ -199,5 +259,10 @@ function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.wanderTimer = 0;
 	this.wanderCenter = null;
 	this.maxPursueDistance = 300;
+	this.alertPursueDistance = 100;
+	this.alertEvadeDistance = 80;4
 	this.maxEvadeDistance = 400;
+	this.alerted = false;
+	this.target = null;
+	this.home = null;
 }
