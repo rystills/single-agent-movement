@@ -6,9 +6,8 @@ makeChild("Knight","Actor");
  * @param y: the starting center y coordinate of the knight
  * @param cnv: the canvas to which this actor belongs
  */
-function Knight(x,y,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
-	Actor.call(this,x,y,cnv,rot,accel,maxVel,angAccel,angMaxVel);
-	this.imageName = "knight.png";
+function Knight(x,y,cnv) {
+	Actor.call(this,x,y,"knight.png",cnv);
 	this.debugColor = "#BBBBBB";
 	this.state = "wander";
 }

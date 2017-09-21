@@ -22,14 +22,20 @@ Actor.prototype.update = function() {
  * run away from the target Actor
  */
 Actor.prototype.evade = function() {
-	
+	if (getDistance(this.x,this.y,this.target.x,this.target.y) < this.maxEvadeDistance) {
+		this.rot = 180 + getAngle(this.x,this.y,this.target.x,this.target.y);
+		this.moveForward(this.accel*140);	
+	}
 }
 
 /**
  * pursue the target Actor
  */
 Actor.prototype.pursue = function() {
-	
+	if (getDistance(this.x,this.y,this.target.x,this.target.y) < this.maxPursueDistance) {
+		this.rot = getAngle(this.x,this.y,this.target.x,this.target.y);
+		this.moveForward(this.accel*115);	
+	}
 }
 
 /**
@@ -146,6 +152,7 @@ Actor.prototype.moveForward = function(amt,isAbsolute) {
  * base actor class from which game-objects will extend
  * @param x: the starting center x coordinate of the actor
  * @param y: the starting center y coordinate of the actor
+ * @param imageName: the image name which represents this Actor
  * @param cnv: the canvas to which this actor belongs
  * @param rot: the starting rotation (in degrees) of the actor
  * @param accel: the rate of acceleration/deceleration of the actor
@@ -153,7 +160,7 @@ Actor.prototype.moveForward = function(amt,isAbsolute) {
  * @param angAccel: the rate of angular acceleration/deceleration of the actor
  * @param angMaxVel: the maximum angular velocity of the actor
  */
-function Actor(x,y,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
+function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	//set some reasonable default values for the optional args
 	if (rot == null) {
 		rot = 0;
@@ -174,6 +181,7 @@ function Actor(x,y,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	//initialize all of our properties
 	this.x = x;
 	this.y = y;
+	this.imageName = imageName;
 	this.canvas = cnv;
 	this.rot = rot;
 	this.accel = accel;
@@ -190,4 +198,6 @@ function Actor(x,y,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.dest = null;
 	this.wanderTimer = 0;
 	this.wanderCenter = null;
+	this.maxPursueDistance = 300;
+	this.maxEvadeDistance = 400;
 }

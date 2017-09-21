@@ -6,9 +6,8 @@ makeChild("Dragon","Actor");
  * @param y: the starting center y coordinate of the dragon
  * @param cnv: the canvas to which this actor belongs
  */
-function Dragon(x,y,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
-	Actor.call(this,x,y,cnv,rot,accel,maxVel,angAccel,angMaxVel);
-	this.imageName = "dragon.png";
+function Dragon(x,y,cnv) {
+	Actor.call(this,x,y,"dragon.png",cnv);
 	this.debugColor = "#22FF00";
 	this.state = "pursue";
 	this.target = null;

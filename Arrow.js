@@ -6,9 +6,8 @@ makeChild("Arrow","Actor");
  * @param y: the starting center y coordinate of the knight
  * @param cnv: the canvas to which this actor belongs
  */
-function Arrow(x,y,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
-	Actor.call(this,x,y,cnv,rot,accel,maxVel,angAccel,angMaxVel);
-	this.imageName = "arrow.png";
+function Arrow(x,y,cnv) {
+	Actor.call(this,x,y,"arrow.png",cnv);
 	this.debugColor = "#000000";
 	this.state = "follow path";
 	this.path = new Path([[10,10],[200,30],[50,300]],true);

@@ -6,9 +6,8 @@ makeChild("Bat","Actor");
  * @param y: the starting center y coordinate of the bat
  * @param cnv: the canvas to which this actor belongs
  */
-function Bat(x,y,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
-	Actor.call(this,x,y,cnv,rot,accel,maxVel,angAccel,angMaxVel);
-	this.imageName = "bat.png";
+function Bat(x,y,cnv) {
+	Actor.call(this,x,y,"bat.png",cnv);
 	this.debugColor = "#DD4400";
 	this.state = "evade";
 	this.target = null;

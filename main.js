@@ -68,7 +68,7 @@ function getMouseDocument(evt,cnv) {
 function loadAssets() {	
 	//global list of assets and current asset number
 	requiredFiles = ["Actor.js","Button.js","Dragon.js","Bat.js","Knight.js", "Arrow.js","Path.js",
-		"dragon.png","bat.png","knight.png", "arrow.png","tileGrayscale.png"];
+		"dragon.png","bat.png","knight.png", "arrow.png","tileGrayscale.png","gold.png"];
 	
 	assetNum = 0;
 	
@@ -415,11 +415,16 @@ function initGlobals() {
 		
 	//create global game objects
 	objects = [];
+	//create the gold pile first as it is rendered in back
+	objects.push(new Actor(600,100,"gold.png",topLeft));
+	objects[objects.length-1].state = "static";
+	
+	//create the bat and dragon
 	objects.push(new Dragon(400,300,topLeft));
 	objects.push(new Bat(500,300,topLeft));
 	//once the bat and dragon have been created, set them to be each others' targets
-	objects[0].target = objects[1];
-	objects[1].target = objects[0];
+	objects[1].target = objects[2];
+	objects[2].target = objects[1];
 	objects.push(new Knight(100,300,topRight));
 	objects.push(new Arrow(200,200,botLeft));
 }
