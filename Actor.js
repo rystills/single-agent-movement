@@ -6,6 +6,27 @@ Actor.prototype.update = function() {
 	if (this.state == "wander") {
 		this.wander();
 	}
+	else if (this.state == "evade") {
+		this.evade();
+	}
+	else if (this.state == "pursue") {
+		this.pursue();
+	}
+}
+
+
+/**
+ * run away from the target Actor
+ */
+Actor.prototype.evade = function() {
+	
+}
+
+/**
+ * pursue the target Actor
+ */
+Actor.prototype.pursue = function() {
+	
 }
 
 /**

@@ -292,16 +292,17 @@ function render() {
 		//object is following a path: display connected series of path points
 		else if (objects[i].state == "follow path") {
 			var points = objects[i].path.points;
-			
+			var scrollX = objects[i].canvas.scrollX;
+			var scrollY = objects[i].canvas.scrollY;
 			//draw lines connecting the path
 			ctx.beginPath();
-			ctx.moveTo(points[0][0],points[0][1]);
+			ctx.moveTo(points[0][0]-scrollX,points[0][1]-scrollY);
 			for (var r = 1; r < points.length; ++r) {
-				ctx.lineTo(points[r][0],points[r][1]);
+				ctx.lineTo(points[r][0]-scrollX,points[r][1]-scrollY);
 				ctx.stroke();
 			}
 			if (objects[i].path.loop) {
-				ctx.lineTo(points[0][0],points[0][1]);
+				ctx.lineTo(points[0][0]-scrollX,points[0][1]-scrollY);
 				ctx.stroke();
 			}
 			ctx.closePath();
@@ -310,9 +311,7 @@ function render() {
 			ctx.fillStyle = "#FF0000";
 			for (var r = 0; r < points.length; ++r) {
 				ctx.beginPath();
-				ctx.arc(points[r][0] - objects[i].canvas.scrollX,
-						points[r][1] - objects[i].canvas.scrollY,
-						8,0,2*Math.PI);
+				ctx.arc(points[r][0]-scrollX,points[r][1]-scrollY,8,0,2*Math.PI);
 				ctx.fill();
 				ctx.closePath();
 			}
@@ -401,9 +400,13 @@ function initGlobals() {
 	objects = [];
 	objects.push(new Dragon(400,300,topLeft));
 	objects.push(new Bat(500,300,topLeft));
+	//once the bat and dragon have been created, set them to be each others' targets
+	objects[0].target = objects[1];
+	objects[1].target = objects[0];
 	objects.push(new Knight(100,300,topRight));
 	objects.push(new Arrow(200,200,botLeft));
 }
 
 loadAssets();
+setupKeyListeners();
 setupKeyListeners();

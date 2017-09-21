@@ -11,4 +11,5 @@ function Dragon(x,y,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.imageName = "dragon.png";
 	this.debugColor = "#22FF00";
 	this.state = "pursue";
+	this.target = null;
 }

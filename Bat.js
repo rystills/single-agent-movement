@@ -11,4 +11,5 @@ function Bat(x,y,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.imageName = "bat.png";
 	this.debugColor = "#DD4400";
 	this.state = "evade";
+	this.target = null;
 }
