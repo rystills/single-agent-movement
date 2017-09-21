@@ -147,27 +147,29 @@ function clearScreen() {
 }
 
 /**
- * scroll the view if the user is pressing an arrow key or WASD
+ * scroll the view if any character has approached the edge of the screen
  */
 function checkScroll() {
-	//scroll right
-	if (keyStates[String.fromCharCode(39)] || keyStates["D"]) {
-		topLeft.scrollX += 300*deltaTime;
-	}
-	
-	//scroll left
-	if (keyStates[String.fromCharCode(37)] || keyStates["A"]) {
-		topLeft.scrollX -= 300*deltaTime;
-	}
-	
-	//scroll down
-	if (keyStates[String.fromCharCode(40)] || keyStates["S"]) {
-		topLeft.scrollY += 300*deltaTime;
-	}
-	
-	//scroll up
-	if (keyStates[String.fromCharCode(38)] || keyStates["W"]) {
-		topLeft.scrollY -= 300*deltaTime;
+	for (var i = 0; i < objects.length; ++i) {
+		var obj = objects[i];
+		var cnv = obj.canvas;
+		var realX = obj.x - cnv.scrollX;
+		var realY = obj.y - cnv.scrollY;
+		//scroll to keep objects within a certain percentage of their canvas
+		var cameraBounds = .55;
+		if (realX > cameraBounds*cnv.width) {
+			cnv.scrollX -= cameraBounds*cnv.width - realX;
+		}
+		else if (realX < (1-cameraBounds)*cnv.width) {
+			cnv.scrollX -= (1-cameraBounds)*cnv.width - realX;
+		}
+		
+		if (realY > cameraBounds*cnv.height) {
+			cnv.scrollY += realY - cameraBounds*cnv.height;
+		}
+		else if (realY < (1-cameraBounds)*cnv.height) {
+			cnv.scrollY += realY - (1-cameraBounds)*cnv.height;
+		}
 	}
 }
 

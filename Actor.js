@@ -12,7 +12,9 @@ Actor.prototype.update = function() {
  * wander to a random point on a circle around this Actor, then choose a new point
  */
 Actor.prototype.wander = function() {
-	if (this.dest == null) {
+	//decrement wander timer, choosing a new point on the circle if it runs out
+	this.wanderTimer -= deltaTime;
+	if (this.wanderTimer <= 0 || this.dest == null) {
 		//choose a new point around us by generating the x between -rad and rad, then solving for y
 		var xLen = getRandomInt(0,this.wanderRadius);
 		var yLen = Math.sqrt(this.wanderRadius*this.wanderRadius - xLen*xLen);
@@ -30,8 +32,12 @@ Actor.prototype.wander = function() {
 		//move back now that we've set the circle location
 		this.x = curX;
 		this.y = curY;
+		
+		//start timer to determine when to stop wandering
+		this.wanderTimer += .6;
 	}
 	this.rot = getAngle(this.x,this.y,this.dest.x,this.dest.y);
+	this.moveForward(this.accel*100);
 }
 
 /**
@@ -107,5 +113,6 @@ function Actor(x,y,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.wanderRadius = 40;
 	this.wanderDistance = 125;
 	this.dest = null;
+	this.wanderTimer = 0;
 	this.wanderCenter = null;
 }
