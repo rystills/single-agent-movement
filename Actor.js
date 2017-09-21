@@ -6,24 +6,90 @@ Actor.prototype.update = function() {
 	if (this.state == "wander") {
 		this.wander();
 	}
+	else if (this.state == "evade") {
+		this.evade();
+	}
+	else if (this.state == "pursue") {
+		this.pursue();
+	}
+	else if (this.state == "follow path") {
+		this.followPath();
+	}
+}
+
+
+/**
+ * run away from the target Actor
+ */
+Actor.prototype.evade = function() {
+	
+}
+
+/**
+ * pursue the target Actor
+ */
+Actor.prototype.pursue = function() {
+	
+}
+
+/**
+ * find the closest point on this actor's path
+ * @returns the index of the closest point on our path
+ */
+Actor.prototype.findClosestPoint = function() {
+	return 2;
+}
+
+/**
+ * move towards the next point on this Actor's path
+ */
+Actor.prototype.followPath = function() {
+	//if we just started following this path, hop onto the closest point
+	if (this.nextPoint == null) {
+		this.nextPoint = this.findClosestPoint();
+	}
+	var moveRemaining = this.accel*200 * deltaTime;
+	while (moveRemaining > 0) {
+		var destX = this.path.points[this.nextPoint][0];
+		var destY = this.path.points[this.nextPoint][1];
+		this.rot = getAngle(this.x,this.y,destX,destY);
+		
+		//if moving forward will bring us past the point, move to it, update direction, and move the remaining distance
+		var remDist = getDistance(this.x,this.y,destX,destY);
+		var maxDist = moveRemaining;
+		
+		if (remDist > maxDist) {
+			//moving forward will not put us at or past the point
+			this.moveForward(moveRemaining,true);	
+			moveRemaining = 0;
+		}
+		else {
+			//moving forward will get us to the point
+			this.x = destX;
+			this.y = destY;
+			moveRemaining -= remDist;
+			this.nextPoint = (this.nextPoint + 1) % this.path.points.length;
+		}
+	}
 }
 
 /**
  * wander to a random point on a circle around this Actor, then choose a new point
  */
 Actor.prototype.wander = function() {
-	if (this.dest == null) {
+	//decrement wander timer, choosing a new point on the circle if it runs out
+	this.wanderTimer -= deltaTime;
+	if (this.wanderTimer <= 0 || this.dest == null) {
 		//choose a new point around us by generating the x between -rad and rad, then solving for y
 		var xLen = getRandomInt(0,this.wanderRadius);
 		var yLen = Math.sqrt(this.wanderRadius*this.wanderRadius - xLen*xLen);
 		var xSign = getRandomInt(0,2) == 1 ? -1 : 1;
 		var ySign = getRandomInt(0,2) == 1 ? -1 : 1;
 		
-		//move the circle forward by a fixed amount
+		//move forward by a fixed amount so we can place the circle around this new location
 		var curX = this.x;
 		var curY = this.y;
 		this.moveForward(this.wanderDistance,true);
-		console.log(curX + ", " + this.x)
 		
 		this.dest = {x: this.x + xLen*xSign, y: this.y + yLen*ySign};
 		this.wanderCenter = {x:this.x,y:this.y};
@@ -31,8 +97,12 @@ Actor.prototype.wander = function() {
 		//move back now that we've set the circle location
 		this.x = curX;
 		this.y = curY;
+		
+		//start timer to determine when to stop wandering
+		this.wanderTimer += .6;
 	}
 	this.rot = getAngle(this.x,this.y,this.dest.x,this.dest.y);
+	this.moveForward(this.accel*100);
 }
 
 /**
@@ -66,13 +136,14 @@ Actor.prototype.moveForward = function(amt,isAbsolute) {
  * base actor class from which game-objects will extend
  * @param x: the starting center x coordinate of the actor
  * @param y: the starting center y coordinate of the actor
+ * @param cnv: the canvas to which this actor belongs
  * @param rot: the starting rotation (in degrees) of the actor
  * @param accel: the rate of acceleration/deceleration of the actor
  * @param maxVel: the maximum velocity of the actor
  * @param angAccel: the rate of angular acceleration/deceleration of the actor
  * @param angMaxVel: the maximum angular velocity of the actor
  */
-function Actor(x,y,rot,accel, maxVel, angAccel, angMaxVel) {
+function Actor(x,y,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	//set some reasonable default values for the optional args
 	if (rot == null) {
 		rot = 0;
@@ -93,6 +164,7 @@ function Actor(x,y,rot,accel, maxVel, angAccel, angMaxVel) {
 	//initialize all of our properties
 	this.x = x;
 	this.y = y;
+	this.canvas = cnv;
 	this.rot = rot;
 	this.accel = accel;
 	this.maxVel = maxVel;
@@ -106,5 +178,6 @@ function Actor(x,y,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.wanderRadius = 40;
 	this.wanderDistance = 125;
 	this.dest = null;
+	this.wanderTimer = 0;
 	this.wanderCenter = null;
 }

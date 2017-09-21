@@ -16,11 +16,16 @@ function setupKeyListeners() {
 	mousePressedLeft = false;
 	mouseDownRight = false;
 	mousePressedRight = false;
-	canvas.mousePos = {x:0,y:0};
+	topLeft.mousePos = {x:0,y:0};
+	topRight.mousePos = {x:0,y:0};
+	botLeft.mousePos = {x:0,y:0};
+	botRight.mousePos = {x:0,y:0};
 	
 	document.body.addEventListener("mousemove", function (e) {
 		//store the relative mouse position for each canvas
-		canvas.mousePos = getMouseDocument(e);
+		for (var i = 0; i < canvases.length; ++i) {
+			canvases[i].mousePos = getMouseDocument(e,canvases[i]);
+		}
 	});
 	document.body.addEventListener("mousedown", function (e) {
 		if (e.button == 0) {
@@ -49,10 +54,11 @@ function setupKeyListeners() {
 /**
  * get the position of the mouse in the document
  * @param evt: the currently processing event
+ * @param cnv: the canvas to check mouse position against
  * @returns an object containing the x,y coordinates of the mouse
  */
-function getMouseDocument(evt) {
-	 var rect = canvas.getBoundingClientRect();
+function getMouseDocument(evt,cnv) {
+	 var rect = cnv.getBoundingClientRect();
 	 return {x: evt.clientX - rect.left, y: evt.clientY - rect.top};	
 }
 
@@ -61,7 +67,9 @@ function getMouseDocument(evt) {
  */
 function loadAssets() {	
 	//global list of assets and current asset number
-	requiredFiles = ["Actor.js","Button.js","Dragon.js","Bat.js","Knight.js","dragon.png","bat.png","knight.png", "floor.png"];
+	requiredFiles = ["Actor.js","Button.js","Dragon.js","Bat.js","Knight.js", "Arrow.js","Path.js",
+		"dragon.png","bat.png","knight.png", "arrow.png","tileGrayscale.png"];
+	
 	assetNum = 0;
 	
 	//global list of script contents
@@ -122,35 +130,46 @@ function makeChild(objectName, parentName) {
 }
 
 /**
- * clear the entire screen to black, preparing it for a fresh render
+ * clear all canvases to their respective fill colors, preparing them for a fresh render
  */
 function clearScreen() {
-	context.fillStyle="#000000";
-	context.fillRect(0,0,canvas.width,canvas.height);
+	topLeftCtx.fillStyle="rgb(40,120,255)";
+	topLeftCtx.fillRect(0,0,topLeft.width,topLeft.height);
+	
+	topRightCtx.fillStyle="rgb(140,20,255)";
+	topRightCtx.fillRect(0,0,topRight.width,topRight.height);
+	
+	botLeftCtx.fillStyle="rgb(35,150,35)";
+	botLeftCtx.fillRect(0,0,botLeft.width,botLeft.height);
+	
+	botRightCtx.fillStyle="#000000";
+	botRightCtx.fillRect(0,0,botRight.width,botRight.height);
 }
 
 /**
- * scroll the view if the user is pressing an arrow key or WASD
+ * scroll the view if any character has approached the edge of the screen
  */
 function checkScroll() {
-	//scroll right
-	if (keyStates[String.fromCharCode(39)] || keyStates["D"]) {
-		scrollX += 300*deltaTime;
-	}
-	
-	//scroll left
-	if (keyStates[String.fromCharCode(37)] || keyStates["A"]) {
-		scrollX -= 300*deltaTime;
-	}
-	
-	//scroll down
-	if (keyStates[String.fromCharCode(40)] || keyStates["S"]) {
-		scrollY += 300*deltaTime;
-	}
-	
-	//scroll up
-	if (keyStates[String.fromCharCode(38)] || keyStates["W"]) {
-		scrollY -= 300*deltaTime;
+	for (var i = 0; i < objects.length; ++i) {
+		var obj = objects[i];
+		var cnv = obj.canvas;
+		var realX = obj.x - cnv.scrollX;
+		var realY = obj.y - cnv.scrollY;
+		//scroll to keep objects within a certain percentage of their canvas
+		var cameraBounds = .55;
+		if (realX > cameraBounds*cnv.width) {
+			cnv.scrollX -= cameraBounds*cnv.width - realX;
+		}
+		else if (realX < (1-cameraBounds)*cnv.width) {
+			cnv.scrollX -= (1-cameraBounds)*cnv.width - realX;
+		}
+		
+		if (realY > cameraBounds*cnv.height) {
+			cnv.scrollY += realY - cameraBounds*cnv.height;
+		}
+		else if (realY < (1-cameraBounds)*cnv.height) {
+			cnv.scrollY += realY - (1-cameraBounds)*cnv.height;
+		}
 	}
 }
 
@@ -213,50 +232,89 @@ function render() {
 	clearScreen();
 	
 	//draw background tiles covering the entire screen (1 tile buffer to make scrolling seamless)
-	var negX = Math.sign(scrollX) == -1;
-	var negY = Math.sign(scrollY) == -1;
-	for (var i = -negX; i < (canvas.width/256) + 1-negX; ++i) {
-		for (var r = -negY; r < (canvas.height/256) + 1-negY; ++r) {
-			context.drawImage(images["floor.png"],i*256 - (scrollX % 256),r*256 - (scrollY % 256));
+	//ignore the final canvas, as the UI should not scroll
+	for (var j = 0; j < canvases.length-1; ++j) {
+		var scrollX = canvases[j].scrollX;
+		var scrollY = canvases[j].scrollY;
+		var negX = Math.sign(scrollX) == -1;
+		var negY = Math.sign(scrollY) == -1;
+		for (var i = -negX; i < (canvases[j].width/200) + 1-negX; ++i) {
+			for (var r = -negY; r < (canvases[j].height/200) + 1-negY; ++r) {
+				contexts[j].drawImage(images["tileGrayscale.png"],i*200 - (scrollX % 200),r*200 - (scrollY % 200));
+			}
 		}
 	}
 	
-	//draw objets
+	//draw objects
 	for (var i = 0; i < objects.length; ++i) {
-		drawCentered(objects[i].imageName,objects[i].x - scrollX,objects[i].y - scrollY,objects[i].rot);
+		drawCentered(objects[i].imageName,objects[i].canvas.getContext("2d"),
+				objects[i].x - objects[i].canvas.scrollX,objects[i].y - objects[i].canvas.scrollY,objects[i].rot);
 	}
 	
 	//draw a darkened bar to make the GUI more readable
-	context.fillStyle = "rgba(0,0,0,.5)";
-	context.fillRect(0,0,canvas.width,40);
+	/*botRightCtx.fillStyle = "rgba(0,0,0,.5)";
+	botRightCtx.fillRect(0,0,botRight.width,40);*/
 	
 	//display each npc's current algorithm
-	context.font = "30px Arial";
+	botRightCtx.font = "30px Arial";
 	var textHeight = 30;
-	context.fillStyle = "#FFFFFF";
+	botRightCtx.fillStyle = "#FFFFFF";
 	
 	for (var i = 0; i < objects.length; ++i) {
-		context.fillText(objects[i].imageName.split(".")[0] + " algo: " + objects[i].state,5*(i+1) + (350*i),textHeight);	
+		botRightCtx.fillText(objects[i].imageName.split(".")[0] + " algorithm: " + objects[i].state,5,textHeight * (i+1));	
 	}
 	
-	//display destination of each npc's current algorithm
+	//display info about each npc's current algorithm
 	for (var i = 0; i < objects.length; ++i) {
+		var ctx = objects[i].canvas.getContext("2d");
+		ctx.lineWidth=5;
+		//object is wandering: display wander radius and destination point
 		if (objects[i].state == "wander") {
 			//wander state: draw wander circle
-			context.strokeStyle = objects[i].debugColor;
-			context.beginPath();
-			context.lineWidth=5;
-			context.arc(objects[i].wanderCenter.x - scrollX,objects[i].wanderCenter.y - scrollY,objects[i].wanderRadius,0,2*Math.PI);
-			context.stroke();
-			context.arc(objects[i].dest.x - scrollX,objects[i].dest.y - scrollY,15,0,2*Math.PI);
-			context.closePath();
+			ctx.strokeStyle = objects[i].debugColor;
+			ctx.beginPath();
+			ctx.arc(objects[i].wanderCenter.x - objects[i].canvas.scrollX,
+					objects[i].wanderCenter.y - objects[i].canvas.scrollY,objects[i].wanderRadius,0,2*Math.PI);
+			ctx.stroke();
+			ctx.arc(objects[i].dest.x - objects[i].canvas.scrollX,
+					objects[i].dest.y - objects[i].canvas.scrollY,15,0,2*Math.PI);
+			ctx.closePath();
 			
 			//draw dest point on wander circle
-			context.fillStyle = objects[i].debugColor;
-			context.beginPath();
-			context.arc(objects[i].dest.x - scrollX,objects[i].dest.y - scrollY,15,0,2*Math.PI);
-			context.fill();
-			context.closePath();
+			ctx.fillStyle = objects[i].debugColor;
+			ctx.beginPath();
+			ctx.arc(objects[i].dest.x - objects[i].canvas.scrollX,
+					objects[i].dest.y - objects[i].canvas.scrollY,15,0,2*Math.PI);
+			ctx.fill();
+			ctx.closePath();
+		}
+		
+		//object is following a path: display connected series of path points
+		else if (objects[i].state == "follow path") {
+			var points = objects[i].path.points;
+			var scrollX = objects[i].canvas.scrollX;
+			var scrollY = objects[i].canvas.scrollY;
+			//draw lines connecting the path
+			ctx.beginPath();
+			ctx.moveTo(points[0][0]-scrollX,points[0][1]-scrollY);
+			for (var r = 1; r < points.length; ++r) {
+				ctx.lineTo(points[r][0]-scrollX,points[r][1]-scrollY);
+				ctx.stroke();
+			}
+			if (objects[i].path.loop) {
+				ctx.lineTo(points[0][0]-scrollX,points[0][1]-scrollY);
+				ctx.stroke();
+			}
+			ctx.closePath();
+			
+			//draw the points on the path
+			ctx.fillStyle = "#FF0000";
+			for (var r = 0; r < points.length; ++r) {
+				ctx.beginPath();
+				ctx.arc(points[r][0]-scrollX,points[r][1]-scrollY,8,0,2*Math.PI);
+				ctx.fill();
+				ctx.closePath();
+			}
 		}
 	}
 	
@@ -265,21 +323,34 @@ function render() {
 /**
  * draw an image centered around the specified coordinates, with an optional arbitrary rotation
  * @param imageName: the name of the image to draw
+ * @param ctx: the context onto which to draw the image
  * @param x: the center x coordinate at which to draw the image
  * @param y: the center x coordinate at which to draw the image
  * @param rot: if specified, the amount in degrees by which to rotate the image
  */
-function drawCentered(imageName,x,y,rot) {
+function drawCentered(imageName,ctx,x,y,rot) {
 	var img = images[imageName];
-	context.save();
+	ctx.save();
 	//perform the inverse of the object's translation to effectively bring it to the origin
-	context.translate(x,y);
+	ctx.translate(x,y);
 	if (rot != 0) {
-		context.rotate(rot*Math.PI/180);
+		ctx.rotate(rot*Math.PI/180);
 	}
-	context.drawImage(img, -(img.width/2), -(img.height/2));
+	ctx.drawImage(img, -(img.width/2), -(img.height/2));
 	//restore the canvas now that we're done modifying it
-	context.restore();
+	ctx.restore();
+}
+
+/**
+ * get the distance between two points
+ * @param x1: the x coordinate of the first point
+ * @param y1: the y coordinate of the first point
+ * @param x2: the x coordinate of the second point
+ * @param y2: the y coordinate of the second point
+ * @returns the distance between the two input points
+ */
+function getDistance(x1,y1,x2,y2) {
+	return Math.sqrt(((x2-x1)*(x2-x1))+((y2-y1)*(y2-y1)));
 }
 
 /**
@@ -298,9 +369,19 @@ function updateTime() {
 }
 
 /**
- * sets the fps and begins the main update loop; to be called after resource loading
+ * calls initGlobals and begins the main update loop; to be called after resource loading
  */
 function startGame() {
+	initGlobals();
+
+	//set the game to call the 'update' method on each tick
+	_intervalId = setInterval(update, 1000 / fps);
+}
+
+/**
+ * initialize all global variables
+ */
+function initGlobals() {
 	//keep a global fps flag for game-speed (although all speeds should use deltaTime)
 	fps = 60;
 	
@@ -310,20 +391,34 @@ function startGame() {
 	totalTime = 0;
 	
 	//init global game vars
-	canvas = document.getElementById("canvas");
-	context = canvas.getContext("2d");
-	scrollX = 0;
-	scrollY = 0;
+	topLeft = document.getElementById("topLeft");
+	topLeftCtx = topLeft.getContext("2d");
+	topRight = document.getElementById("topRight");
+	topRightCtx = topRight.getContext("2d");
+	botLeft = document.getElementById("botLeft");
+	botLeftCtx = botLeft.getContext("2d");
+	botRight= document.getElementById("botRight");
+	botRightCtx = botRight.getContext("2d");
+	canvases = [topLeft,topRight,botLeft,botRight];
+	contexts = [topLeftCtx,topRightCtx,botLeftCtx,botRightCtx];
+	
+	//reset camera position for all canvases
+	for (var i = 0; i < canvases.length; ++i) {
+		canvases[i].scrollX = 0;
+		canvases[i].scrollY = 0;
+	}
 	
 	//create game objects
 	objects = [];
-	objects.push(new Dragon(400,300));
-	objects.push(new Bat(500,300));
-	objects.push(new Knight(100,300));
-	
-	//set the game to call the 'update' method on each tick
-	_intervalId = setInterval(update, 1000 / fps);
+	objects.push(new Dragon(400,300,topLeft));
+	objects.push(new Bat(500,300,topLeft));
+	//once the bat and dragon have been created, set them to be each others' targets
+	objects[0].target = objects[1];
+	objects[1].target = objects[0];
+	objects.push(new Knight(100,300,topRight));
+	objects.push(new Arrow(200,200,botLeft));
 }
 
-setupKeyListeners();
 loadAssets();
+setupKeyListeners();
+setupKeyListeners();
