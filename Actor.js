@@ -12,6 +12,9 @@ Actor.prototype.update = function() {
 	else if (this.state == "pursue") {
 		this.pursue();
 	}
+	else if (this.state == "follow path") {
+		this.followPath();
+	}
 }
 
 
@@ -27,6 +30,47 @@ Actor.prototype.evade = function() {
  */
 Actor.prototype.pursue = function() {
 	
+}
+
+/**
+ * find the closest point on this actor's path
+ * @returns the index of the closest point on our path
+ */
+Actor.prototype.findClosestPoint = function() {
+	return 2;
+}
+
+/**
+ * move towards the next point on this Actor's path
+ */
+Actor.prototype.followPath = function() {
+	//if we just started following this path, hop onto the closest point
+	if (this.nextPoint == null) {
+		this.nextPoint = this.findClosestPoint();
+	}
+	var moveRemaining = this.accel*200 * deltaTime;
+	while (moveRemaining > 0) {
+		var destX = this.path.points[this.nextPoint][0];
+		var destY = this.path.points[this.nextPoint][1];
+		this.rot = getAngle(this.x,this.y,destX,destY);
+		
+		//if moving forward will bring us past the point, move to it, update direction, and move the remaining distance
+		var remDist = getDistance(this.x,this.y,destX,destY);
+		var maxDist = moveRemaining;
+		
+		if (remDist > maxDist) {
+			//moving forward will not put us at or past the point
+			this.moveForward(moveRemaining,true);	
+			moveRemaining = 0;
+		}
+		else {
+			//moving forward will get us to the point
+			this.x = destX;
+			this.y = destY;
+			moveRemaining -= remDist;
+			this.nextPoint = (this.nextPoint + 1) % this.path.points.length;
+		}
+	}
 }
 
 /**

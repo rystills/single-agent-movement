@@ -342,6 +342,18 @@ function drawCentered(imageName,ctx,x,y,rot) {
 }
 
 /**
+ * get the distance between two points
+ * @param x1: the x coordinate of the first point
+ * @param y1: the y coordinate of the first point
+ * @param x2: the x coordinate of the second point
+ * @param y2: the y coordinate of the second point
+ * @returns the distance between the two input points
+ */
+function getDistance(x1,y1,x2,y2) {
+	return Math.sqrt(((x2-x1)*(x2-x1))+((y2-y1)*(y2-y1)));
+}
+
+/**
  * update the global deltaTime
  */
 function updateTime() {

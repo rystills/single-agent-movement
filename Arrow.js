@@ -11,5 +11,6 @@ function Arrow(x,y,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.imageName = "arrow.png";
 	this.debugColor = "#000000";
 	this.state = "follow path";
-	this.path = new Path([[10,10],[200,30],[50,300]]);
+	this.path = new Path([[10,10],[200,30],[50,300]],true);
+	this.nextPoint = null;
 }
