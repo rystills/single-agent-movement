@@ -425,13 +425,13 @@ function initGlobals() {
 	
 	//create the bat and dragon
 	objects.push(new Dragon(400,300,topLeft));
-	objects.push(new Bat(700,300,topLeft));
-	//once the bat and dragon have been created, set them to be each others' targets
+	objects.push(new Knight(700,300,topLeft));
+	//once the knight and dragon have been created, set them to be each others' targets
 	objects[1].target = objects[2];
 	objects[2].target = objects[1];
 	objects[1].home = objects[0];
 	objects[2].home = objects[0];
-	objects.push(new Knight(100,300,topRight));
+	objects.push(new Bat(100,300,topRight));
 	objects.push(new Arrow(200,200,botLeft));
 }
 

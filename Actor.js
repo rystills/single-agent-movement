@@ -27,9 +27,9 @@ Actor.prototype.evade = function() {
 			this.alerted = true;
 		}
 		else {
-			this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
 			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
 			if (remDist > this.accel*100 * deltaTime) {
+				this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
 				this.moveForward(this.accel*100);	
 			}
 			else {
@@ -45,9 +45,9 @@ Actor.prototype.evade = function() {
 		}
 		else {
 			this.alerted = false;
-			this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
 			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
 			if (remDist > this.accel*100 * deltaTime) {
+				this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
 				this.moveForward(this.accel*100);	
 			}
 			else {
@@ -67,9 +67,9 @@ Actor.prototype.pursue = function() {
 			this.alerted = true;
 		}
 		else {
-			this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
 			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
 			if (remDist > this.accel*90 * deltaTime) {
+				this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
 				this.moveForward(this.accel*90);	
 			}
 			else {
@@ -85,9 +85,9 @@ Actor.prototype.pursue = function() {
 		}
 		else {
 			this.alerted = false;
-			this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
 			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
 			if (remDist > this.accel*90 * deltaTime) {
+				this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
 				this.moveForward(this.accel*90);	
 			}
 			else {
@@ -258,10 +258,10 @@ function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.dest = null;
 	this.wanderTimer = 0;
 	this.wanderCenter = null;
-	this.maxPursueDistance = 300;
+	this.maxPursueDistance = 150;
 	this.alertPursueDistance = 100;
-	this.alertEvadeDistance = 80;4
-	this.maxEvadeDistance = 400;
+	this.alertEvadeDistance = 80;
+	this.maxEvadeDistance = 260;
 	this.alerted = false;
 	this.target = null;
 	this.home = null;

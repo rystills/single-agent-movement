@@ -1,7 +1,7 @@
 makeChild("Dragon","Actor");
 
 /**
- * class representing a Dragon which chases the bat
+ * class representing a Dragon which guards the gold and chases the knight
  * @param x: the starting center x coordinate of the dragon
  * @param y: the starting center y coordinate of the dragon
  * @param cnv: the canvas to which this actor belongs
