@@ -37,7 +37,17 @@ Actor.prototype.pursue = function() {
  * @returns the index of the closest point on our path
  */
 Actor.prototype.findClosestPoint = function() {
-	return 2;
+	var closestInd = -1;
+	var closestDist = -1;
+	for (var i = 0; i < this.path.points.length; ++i) {
+		var ptDist = getDistance(this.x,this.y,this.path.points[i][0],this.path.points[i][1]);
+		//check if this new point is closer to our starting position than the current closest point
+		if (ptDist < closestDist || closestInd == -1) {
+			closestInd = i;
+			closestDist = ptDist;
+		}
+	}
+	return closestInd;
 }
 
 /**

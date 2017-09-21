@@ -379,18 +379,10 @@ function startGame() {
 }
 
 /**
- * initialize all global variables
+ * initialize references to all of our canvases, and set their starting scroll values to 0
  */
-function initGlobals() {
-	//keep a global fps flag for game-speed (although all speeds should use deltaTime)
-	fps = 60;
-	
-	//init global time vars for delta time calculation
-	prevTime = Date.now();
-	deltaTime = 0;
-	totalTime = 0;
-	
-	//init global game vars
+function initCanvases() {
+	//created appropriately named references to all of our canvases
 	topLeft = document.getElementById("topLeft");
 	topLeftCtx = topLeft.getContext("2d");
 	topRight = document.getElementById("topRight");
@@ -407,8 +399,21 @@ function initGlobals() {
 		canvases[i].scrollX = 0;
 		canvases[i].scrollY = 0;
 	}
+}
+
+/**
+ * initialize all global variables
+ */
+function initGlobals() {
+	//keep a global fps flag for game-speed (although all speeds should use deltaTime)
+	fps = 60;
 	
-	//create game objects
+	//init global time vars for delta time calculation
+	prevTime = Date.now();
+	deltaTime = 0;
+	totalTime = 0;
+		
+	//create global game objects
 	objects = [];
 	objects.push(new Dragon(400,300,topLeft));
 	objects.push(new Bat(500,300,topLeft));
@@ -419,6 +424,6 @@ function initGlobals() {
 	objects.push(new Arrow(200,200,botLeft));
 }
 
+initCanvases();
+setupKeyListeners();
 loadAssets();
-setupKeyListeners();
-setupKeyListeners();
