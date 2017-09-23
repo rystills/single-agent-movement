@@ -6,44 +6,54 @@ Actor.prototype.update = function() {
 	eval("this.state == 'static' ? '': this." + this.stateMethods[this.state] + "();");
 }
 
+/**
+ * approach a target point, stopping there if we will reach or move past it
+ * @param destX: the x coordinate to move towards
+ * @param destY: the y coordinate to move towards
+ * @param amt: the amount by which to move
+ * @returns whether we reached the destination (true) or not (false)
+ */
+Actor.prototype.approachDestination = function(destX, destY,amt) {
+	var remDist = getDistance(this.x,this.y,destX,destY);
+	if (remDist > this.accel*100 * deltaTime) {
+		//we cannot reach our destination yet, so simply move towards the destination
+		this.dir = getAngle(this.x,this.y,destX,destY);
+		this.moveForward(amt);
+		return false;
+	}
+	else {
+		//we will reach our destination, so stop there rather than going past it
+		this.x = destX;
+		this.y = destY;
+		return true;
+	}
+}
+
 
 /**
  * run away from the target Actor
  */
 Actor.prototype.evade = function() {
 	if (!this.alerted) {
+		//we are not alerted; check if we should become alerted, and if not, move towards home
 		if (getDistance(this.x,this.y,this.target.x,this.target.y) < this.alertEvadeDistance) {
+			//we are within range of the target; switch to alerted and restart evade
 			this.alerted = true;
+			return this.evade();
 		}
-		else {
-			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
-			if (remDist > this.accel*100 * deltaTime) {
-				this.dir = getAngle(this.x,this.y,this.home.x,this.home.y);
-				this.moveForward(this.accel*100);	
-			}
-			else {
-				this.x = this.home.x;
-				this.y = this.home.y;
-			}
-		}
+		//we are not within range, so move towards home
+		this.approachDestination(this.home.x,this.home.y,this.accel*100);
 	}
-	if (this.alerted) {
-		if (getDistance(this.x,this.y,this.target.x,this.target.y) < this.maxEvadeDistance) {
-			this.dir = 180 + getAngle(this.x,this.y,this.target.x,this.target.y);
-			this.moveForward(this.accel*140);	
-		}
-		else {
+	else {
+		//we are alerted; check if we should stop being alerted, and if not, continue evading the target
+		if (getDistance(this.x,this.y,this.target.x,this.target.y) >= this.maxEvadeDistance) {
+			//we are not in range of the target anymore; switch off alerted and restart evade
 			this.alerted = false;
-			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
-			if (remDist > this.accel*100 * deltaTime) {
-				this.dir = getAngle(this.x,this.y,this.home.x,this.home.y);
-				this.moveForward(this.accel*100);	
-			}
-			else {
-				this.x = this.home.x;
-				this.y = this.home.y;
-			}
+			return this.evade();
 		}	
+		//we are still in range of the target; continue evading
+		this.dir = 180 + getAngle(this.x,this.y,this.target.x,this.target.y);
+		this.moveForward(this.accel*140);
 	}
 }
 
@@ -52,38 +62,25 @@ Actor.prototype.evade = function() {
  */
 Actor.prototype.pursue = function() {
 	if (!this.alerted) {
+		//we are not alerted; check if we should become alerted, and if not, move towards home
 		if (getDistance(this.x,this.y,this.target.x,this.target.y) < this.alertPursueDistance) {
+			//we are within range of the target; switch to alerted and restart pursue
 			this.alerted = true;
+			return this.pursue();
 		}
-		else {
-			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
-			if (remDist > this.accel*90 * deltaTime) {
-				this.dir = getAngle(this.x,this.y,this.home.x,this.home.y);
-				this.moveForward(this.accel*90);	
-			}
-			else {
-				this.x = this.home.x;
-				this.y = this.home.y;
-			}	
-		}
+		//we are not within range, so move towards home
+		this.approachDestination(this.home.x,this.home.y,this.accel*90);
 	}
-	if (this.alerted) {
-		if (getDistance(this.x,this.y,this.target.x,this.target.y) < this.maxPursueDistance) {
-			this.dir = getAngle(this.x,this.y,this.target.x,this.target.y);
-			this.moveForward(this.accel*115);
-		}
-		else {
+	else {
+		//we are alerted; check if we should stop being alerted, and if not, continue pursuing the target
+		if (getDistance(this.x,this.y,this.target.x,this.target.y) >= this.maxPursueDistance) {
+			//we are not in range of the target anymore; switch off alerted and restart pursue
 			this.alerted = false;
-			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
-			if (remDist > this.accel*90 * deltaTime) {
-				this.dir = getAngle(this.x,this.y,this.home.x,this.home.y);
-				this.moveForward(this.accel*90);	
-			}
-			else {
-				this.x = this.home.x;
-				this.y = this.home.y;
-			}
+			return this.pursue();
 		}	
+		//we are still in range of the target; continue pursuing
+		this.dir = getAngle(this.x,this.y,this.target.x,this.target.y);
+		this.moveForward(this.accel*115);
 	}
 }
 
@@ -145,7 +142,7 @@ Actor.prototype.wander = function() {
 	//decrement wander timer, choosing a new point on the circle if it runs out
 	this.wanderTimer -= deltaTime;
 	if (this.wanderTimer <= 0 || this.dest == null) {
-		//choose a new point around us by generating the x between -rad and rad, then solving for y
+		//choose a new point around us by generating the x between 0 and rad, then solving for y
 		var xLen = getRandomInt(0,this.wanderRadius);
 		var yLen = Math.sqrt(this.wanderRadius*this.wanderRadius - xLen*xLen);
 		var xSign = getRandomInt(0,2) == 1 ? -1 : 1;
@@ -253,6 +250,7 @@ function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.maxEvadeDistance = 260;
 	this.alerted = false;
 	this.target = null;
-	this.home = null;	
+	this.home = null;
+	//keep a list of our update methods based on current state, to simplify update logic
 	this.stateMethods = {"wander":"wander", "pursue": "pursue",	"evade":"evade","follow path":"followPath"};
 }
