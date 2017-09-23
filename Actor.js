@@ -2,19 +2,8 @@
  * update the actor
  */
 Actor.prototype.update = function() {
-	//update the current state
-	if (this.state == "wander") {
-		this.wander();
-	}
-	else if (this.state == "evade") {
-		this.evade();
-	}
-	else if (this.state == "pursue") {
-		this.pursue();
-	}
-	else if (this.state == "follow path") {
-		this.followPath();
-	}
+	//run the named method corresponding to our current state
+	eval("this.state == 'static' ? '': this." + this.stateMethods[this.state] + "();");
 }
 
 
@@ -29,7 +18,7 @@ Actor.prototype.evade = function() {
 		else {
 			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
 			if (remDist > this.accel*100 * deltaTime) {
-				this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
+				this.dir = getAngle(this.x,this.y,this.home.x,this.home.y);
 				this.moveForward(this.accel*100);	
 			}
 			else {
@@ -40,14 +29,14 @@ Actor.prototype.evade = function() {
 	}
 	if (this.alerted) {
 		if (getDistance(this.x,this.y,this.target.x,this.target.y) < this.maxEvadeDistance) {
-			this.rot = 180 + getAngle(this.x,this.y,this.target.x,this.target.y);
+			this.dir = 180 + getAngle(this.x,this.y,this.target.x,this.target.y);
 			this.moveForward(this.accel*140);	
 		}
 		else {
 			this.alerted = false;
 			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
 			if (remDist > this.accel*100 * deltaTime) {
-				this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
+				this.dir = getAngle(this.x,this.y,this.home.x,this.home.y);
 				this.moveForward(this.accel*100);	
 			}
 			else {
@@ -69,7 +58,7 @@ Actor.prototype.pursue = function() {
 		else {
 			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
 			if (remDist > this.accel*90 * deltaTime) {
-				this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
+				this.dir = getAngle(this.x,this.y,this.home.x,this.home.y);
 				this.moveForward(this.accel*90);	
 			}
 			else {
@@ -80,14 +69,14 @@ Actor.prototype.pursue = function() {
 	}
 	if (this.alerted) {
 		if (getDistance(this.x,this.y,this.target.x,this.target.y) < this.maxPursueDistance) {
-			this.rot = getAngle(this.x,this.y,this.target.x,this.target.y);
-			this.moveForward(this.accel*115);	
+			this.dir = getAngle(this.x,this.y,this.target.x,this.target.y);
+			this.moveForward(this.accel*115);
 		}
 		else {
 			this.alerted = false;
 			var remDist = getDistance(this.x,this.y,this.home.x,this.home.y);
 			if (remDist > this.accel*90 * deltaTime) {
-				this.rot = getAngle(this.x,this.y,this.home.x,this.home.y);
+				this.dir = getAngle(this.x,this.y,this.home.x,this.home.y);
 				this.moveForward(this.accel*90);	
 			}
 			else {
@@ -128,7 +117,7 @@ Actor.prototype.followPath = function() {
 	while (moveRemaining > 0) {
 		var destX = this.path.points[this.nextPoint][0];
 		var destY = this.path.points[this.nextPoint][1];
-		this.rot = getAngle(this.x,this.y,destX,destY);
+		this.dir = getAngle(this.x,this.y,destX,destY);
 		
 		//if moving forward will bring us past the point, move to it, update direction, and move the remaining distance
 		var remDist = getDistance(this.x,this.y,destX,destY);
@@ -177,7 +166,7 @@ Actor.prototype.wander = function() {
 		//start timer to determine when to stop wandering
 		this.wanderTimer += .6;
 	}
-	this.rot = getAngle(this.x,this.y,this.dest.x,this.dest.y);
+	this.dir = getAngle(this.x,this.y,this.dest.x,this.dest.y);
 	this.moveForward(this.accel*100);
 }
 
@@ -191,7 +180,7 @@ Actor.prototype.spin = function(amt,isAbsolute) {
 	if (isAbsolute == null) {
 		isAbsolute = false;
 	}
-	this.rot = (this.rot + amt * (isAbsolute ? 1 : deltaTime)) % 360;
+	this.dir = (this.dir + amt * (isAbsolute ? 1 : deltaTime)) % 360;
 }
 
 /**
@@ -204,8 +193,8 @@ Actor.prototype.moveForward = function(amt,isAbsolute) {
 	if (isAbsolute == null) {
 		isAbsolute = false;
 	}
-	this.x += Math.cos(this.rot * Math.PI/180) * amt * (isAbsolute ? 1 : deltaTime);
-	this.y += Math.sin(this.rot * Math.PI/180) * amt * (isAbsolute ? 1 : deltaTime);
+	this.x += Math.cos(this.dir * Math.PI/180) * amt * (isAbsolute ? 1 : deltaTime);
+	this.y += Math.sin(this.dir * Math.PI/180) * amt * (isAbsolute ? 1 : deltaTime);
 }
 
 /**
@@ -243,7 +232,7 @@ function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.y = y;
 	this.imageName = imageName;
 	this.canvas = cnv;
-	this.rot = rot;
+	this.dir = rot;
 	this.accel = accel;
 	this.maxVel = maxVel;
 	this.angAccel = angAccel;
@@ -264,5 +253,6 @@ function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.maxEvadeDistance = 260;
 	this.alerted = false;
 	this.target = null;
-	this.home = null;
+	this.home = null;	
+	this.stateMethods = {"wander":"wander", "pursue": "pursue",	"evade":"evade","follow path":"followPath"};
 }

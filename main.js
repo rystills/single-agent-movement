@@ -245,12 +245,6 @@ function render() {
 		}
 	}
 	
-	//draw objects
-	for (var i = 0; i < objects.length; ++i) {
-		drawCentered(objects[i].imageName,objects[i].canvas.getContext("2d"),
-				objects[i].x - objects[i].canvas.scrollX,objects[i].y - objects[i].canvas.scrollY,objects[i].rot);
-	}
-	
 	//draw a darkened bar to make the GUI more readable
 	/*botRightCtx.fillStyle = "rgba(0,0,0,.5)";
 	botRightCtx.fillRect(0,0,botRight.width,40);*/
@@ -299,6 +293,7 @@ function render() {
 			var scrollX = objects[i].canvas.scrollX;
 			var scrollY = objects[i].canvas.scrollY;
 			//draw lines connecting the path
+			ctx.strokeStyle = "#000000";
 			ctx.beginPath();
 			ctx.moveTo(points[0][0]-scrollX,points[0][1]-scrollY);
 			for (var r = 1; r < points.length; ++r) {
@@ -319,7 +314,22 @@ function render() {
 				ctx.fill();
 				ctx.closePath();
 			}
+			
+			//draw the 'slow radius' around each point
+			ctx.strokeStyle = "#FF4400";
+			for (var r = 0; r < points.length; ++r) {
+				ctx.beginPath();
+				ctx.arc(points[r][0]-scrollX,points[r][1]-scrollY,objects[i].slowRadius,0,2*Math.PI);
+				ctx.stroke();
+				ctx.closePath();
+			}
 		}
+	}
+	
+	//draw objects in front of their algorithm GUI components
+	for (var i = 0; i < objects.length; ++i) {
+		drawCentered(objects[i].imageName,objects[i].canvas.getContext("2d"),
+				objects[i].x - objects[i].canvas.scrollX,objects[i].y - objects[i].canvas.scrollY,objects[i].dir);
 	}
 	
 }
@@ -421,7 +431,7 @@ function initGlobals() {
 	objects = [];
 	//create the gold pile first as it is rendered in back
 	objects.push(new Actor(600,100,"gold.png",topLeft));
-	objects[objects.length-1].state = "static";
+	objects[0].state = "static";
 	
 	//create the bat and dragon
 	objects.push(new Dragon(400,300,topLeft));
