@@ -4,6 +4,51 @@
 Actor.prototype.update = function() {
 	//run the named method corresponding to our current state
 	eval("this.state == 'static' ? '': this." + this.stateMethods[this.state] + "();");
+	this.approachWantDir();
+}
+
+/**
+ * update the desired direction, while bounding it between 0 and 360 degrees
+ */
+Actor.prototype.updateWantDir = function(newDir) {
+	this.wantDir = newDir%360;
+	while (this.wantDir < 0) {
+		this.wantDir += 360;
+	}
+}
+
+/**
+ * update dir towards wantDir using angular accel/decel
+ */
+Actor.prototype.approachWantDir = function() {
+	if (this.wantDir != this.dir) {
+		//first, determine whether it is faster to turn clockwise, or counter-clockwise
+		var rotDir = -1;
+		if (this.dir + 180 < this.wantDir) {
+			rotDir = 1;
+		}
+		//if we've passed the halfway point, start decelerating, otherwise, accelerate
+		var halfwayCondition = (rotDir == 1 ? 
+				(this.dir > this.startDir + (this.wantDir-this.startDir)/2) : 
+					(this.dir < this.wantDir + (this.startDir-this.wantDir)/2));
+		if (halfwayCondition) {
+			this.angVel -= rotDir*this.angAccel*deltaTime;
+		}
+		else {
+			this.angVel += rotDir*this.angAccel*deltaTime;
+		}
+	}
+	
+	if (this.state == "wander") {
+		console.log("dir: " + this.dir + ", wantDir: " + this.wantDir + ", angVel: " + this.angVel);
+	}
+	
+	//finally, update our direction based on our angular velocity
+	this.dir = (this.dir + this.angVel) % 360;
+	//keep the direction bounded between 0 and 360
+	while (this.dir < 0) {
+		this.dir += 360;
+	}
 }
 
 /**
@@ -17,7 +62,7 @@ Actor.prototype.approachDestination = function(destX, destY,amt) {
 	var remDist = getDistance(this.x,this.y,destX,destY);
 	if (remDist > this.accel*100 * deltaTime) {
 		//we cannot reach our destination yet, so simply move towards the destination
-		this.dir = getAngle(this.x,this.y,destX,destY);
+		this.updateWantDir(getAngle(this.x,this.y,destX,destY));
 		this.moveForward(amt);
 		return false;
 	}
@@ -52,7 +97,7 @@ Actor.prototype.evade = function() {
 			return this.evade();
 		}	
 		//we are still in range of the target; continue evading
-		this.dir = 180 + getAngle(this.x,this.y,this.target.x,this.target.y);
+		this.updateWantDir(180 + getAngle(this.x,this.y,this.target.x,this.target.y));
 		this.moveForward(this.accel*140);
 	}
 }
@@ -79,7 +124,7 @@ Actor.prototype.pursue = function() {
 			return this.pursue();
 		}	
 		//we are still in range of the target; continue pursuing
-		this.dir = getAngle(this.x,this.y,this.target.x,this.target.y);
+		this.updateWantDir(getAngle(this.x,this.y,this.target.x,this.target.y));
 		this.moveForward(this.accel*115);
 	}
 }
@@ -114,7 +159,7 @@ Actor.prototype.followPath = function() {
 	while (moveRemaining > 0) {
 		var destX = this.path.points[this.nextPoint][0];
 		var destY = this.path.points[this.nextPoint][1];
-		this.dir = getAngle(this.x,this.y,destX,destY);
+		this.updateWantDir(getAngle(this.x,this.y,destX,destY));
 		
 		//if moving forward will bring us past the point, move to it, update direction, and move the remaining distance
 		var remDist = getDistance(this.x,this.y,destX,destY);
@@ -161,23 +206,10 @@ Actor.prototype.wander = function() {
 		this.y = curY;
 		
 		//start timer to determine when to stop wandering
-		this.wanderTimer += .6;
+		this.wanderTimer += this.wanderMaxTimer;
 	}
-	this.dir = getAngle(this.x,this.y,this.dest.x,this.dest.y);
+	this.updateWantDir(getAngle(this.x,this.y,this.dest.x,this.dest.y));
 	this.moveForward(this.accel*100);
-}
-
-/**
- * spin the actor by the specified amount, shifted by deltaTime
- * @param amt: the amount by which to spin the actor
- * @param isAbsolute: whether the amount to rotate is absolute (true) or relative to deltaTime (false).
- * if unspecified, isAbsolute defaults to false.
- */
-Actor.prototype.spin = function(amt,isAbsolute) {
-	if (isAbsolute == null) {
-		isAbsolute = false;
-	}
-	this.dir = (this.dir + amt * (isAbsolute ? 1 : deltaTime)) % 360;
 }
 
 /**
@@ -230,6 +262,8 @@ function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.imageName = imageName;
 	this.canvas = cnv;
 	this.dir = rot;
+	this.wantDir = rot;
+	this.startDir = rot;
 	this.accel = accel;
 	this.maxVel = maxVel;
 	this.angAccel = angAccel;
@@ -243,6 +277,7 @@ function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.wanderDistance = 125;
 	this.dest = null;
 	this.wanderTimer = 0;
+	this.wanderMaxTimer = 1;
 	this.wanderCenter = null;
 	this.maxPursueDistance = 150;
 	this.alertPursueDistance = 100;

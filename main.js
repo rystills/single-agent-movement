@@ -202,7 +202,7 @@ function update() {
  * @param y1: the y coordinate of the first point
  * @param x2: the x coordinate of the second point
  * @param y2: the y coordinate of the second point
- * @param radians: whether the angle is in radians (true) or degrees (false)
+ * @param radians: whether the returned angle should be in radians (true) or degrees (false)
  * @returns the angle between the two input points
  */
 function getAngle(x1,y1,x2,y2,radians) {
