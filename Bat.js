@@ -10,5 +10,4 @@ function Bat(x,y,cnv) {
 	Actor.call(this,x,y,"bat.png",cnv);
 	this.debugColor = "#DD4400";
 	this.state = "wander";
-	this.target = null;
 }

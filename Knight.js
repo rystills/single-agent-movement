@@ -10,4 +10,6 @@ function Knight(x,y,cnv) {
 	Actor.call(this,x,y,"knight.png",cnv);
 	this.debugColor = "#BBBBBB";
 	this.state = "evade";
+	this.target = null;
+	this.slowRadius = 110;
 }

@@ -8,8 +8,9 @@ makeChild("Arrow","Actor");
  */
 function Arrow(x,y,cnv) {
 	Actor.call(this,x,y,"arrow.png",cnv);
-	this.debugColor = "#000000";
+	this.debugColor = "#DD4400";
 	this.state = "follow path";
 	this.path = new Path([[10,10],[300,50],[-100,500], [300,250],[-225,240],[-450,280]],true);
 	this.nextPoint = null;
+	this.slowRadius = 125;
 }

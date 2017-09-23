@@ -265,24 +265,26 @@ function render() {
 	//display info about each npc's current algorithm
 	for (var i = 0; i < objects.length; ++i) {
 		var ctx = objects[i].canvas.getContext("2d");
+		var scrollX = objects[i].canvas.scrollX;
+		var scrollY = objects[i].canvas.scrollY;
 		ctx.lineWidth=5;
 		//object is wandering: display wander radius and destination point
 		if (objects[i].state == "wander") {
 			//wander state: draw wander circle
 			ctx.strokeStyle = objects[i].debugColor;
 			ctx.beginPath();
-			ctx.arc(objects[i].wanderCenter.x - objects[i].canvas.scrollX,
-					objects[i].wanderCenter.y - objects[i].canvas.scrollY,objects[i].wanderRadius,0,2*Math.PI);
+			ctx.arc(objects[i].wanderCenter.x - scrollX,
+					objects[i].wanderCenter.y - scrollY,objects[i].wanderRadius,0,2*Math.PI);
 			ctx.stroke();
-			ctx.arc(objects[i].dest.x - objects[i].canvas.scrollX,
-					objects[i].dest.y - objects[i].canvas.scrollY,15,0,2*Math.PI);
+			ctx.arc(objects[i].dest.x - scrollX,
+					objects[i].dest.y - scrollY,15,0,2*Math.PI);
 			ctx.closePath();
 			
 			//draw dest point on wander circle
 			ctx.fillStyle = objects[i].debugColor;
 			ctx.beginPath();
-			ctx.arc(objects[i].dest.x - objects[i].canvas.scrollX,
-					objects[i].dest.y - objects[i].canvas.scrollY,15,0,2*Math.PI);
+			ctx.arc(objects[i].dest.x - scrollX,
+					objects[i].dest.y - scrollY,15,0,2*Math.PI);
 			ctx.fill();
 			ctx.closePath();
 		}
@@ -290,8 +292,6 @@ function render() {
 		//object is following a path: display connected series of path points
 		else if (objects[i].state == "follow path") {
 			var points = objects[i].path.points;
-			var scrollX = objects[i].canvas.scrollX;
-			var scrollY = objects[i].canvas.scrollY;
 			//draw lines connecting the path
 			ctx.strokeStyle = "#000000";
 			ctx.beginPath();
@@ -316,13 +316,23 @@ function render() {
 			}
 			
 			//draw the 'slow radius' around each point
-			ctx.strokeStyle = "#FF4400";
+			ctx.strokeStyle = objects[i].debugColor;
 			for (var r = 0; r < points.length; ++r) {
 				ctx.beginPath();
 				ctx.arc(points[r][0]-scrollX,points[r][1]-scrollY,objects[i].slowRadius,0,2*Math.PI);
 				ctx.stroke();
 				ctx.closePath();
 			}
+		}
+		
+		else if (objects[i].state == "pursue" || objects[i].state == "evade"){
+			//draw a slow radius surrounding the object's home
+			ctx.strokeStyle = objects[i].debugColor;
+			ctx.beginPath();
+			ctx.arc(objects[i].home.x-scrollX,
+					objects[i].home.y-scrollY,objects[i].slowRadius,0,2*Math.PI);
+			ctx.stroke();
+			ctx.closePath();
 		}
 	}
 	
