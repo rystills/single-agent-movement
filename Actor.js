@@ -18,48 +18,26 @@ Actor.prototype.updateWantDir = function(newDir) {
 }
 
 /**
- * update dir towards wantDir using angular accel/decel
+ * update dir towards wantDir angSpeed
  */
 Actor.prototype.approachWantDir = function() {
 	if (this.wantDir != this.dir) {
 		//first, determine whether it is faster to turn clockwise, or counter-clockwise
-		var rotDir = 1;
-		if (this.startDir + 180 < this.wantDir) {
-			rotDir = -1;
-		}
-		//if we've passed the halfway point, start decelerating, otherwise, accelerate
-		var halfwayCondition = (rotDir == 1 ? 
-				(this.dir > this.startDir + (this.wantDir-this.startDir)/2) : 
-					(this.dir < this.wantDir + (this.startDir-this.wantDir)/2));
-		if (halfwayCondition) {
-			this.angVel -= rotDir*this.angAccel*deltaTime;
+		var rotDir = (((this.wantDir - this.dir) + 360) % 360) > 180.0 ? -1 : 1;
+		
+		//now rotate in the desired direction, making sure not to rotate past the desired direction
+		var rotChange = rotDir * this.angSpeed * deltaTime;
+		if (Math.abs(this.wantDir - this.dir) <= Math.abs(rotChange)) {
+			this.dir = this.wantDir;
 		}
 		else {
-			this.angVel += rotDir*this.angAccel*deltaTime;
+			//update direction, and keep it bounded between 0 and 360
+			this.dir = (this.dir + rotChange) % 360;
+			if (this.dir < 0) {
+				this.dir += 360;
+			}
 		}
 	}
-	
-	//keep angular velocity bounded between -maxAngVel and +maxAngVel
-	if (this.angVel < -1*this.maxAngVel) {
-		this.angVel = -1*this.maxAngVel;
-	}
-	else if (this.angVel > this.axAngVel) {
-		this.angVel = this.maxAngVel;
-	}
-	
-	if (this.state == "follow path") {
-		console.log("dir: " + this.dir + ", wantDir: " + this.wantDir + ", angVel: " + this.angVel);
-	}
-	
-	//finally, update our direction based on our angular velocity
-	this.dir = (this.dir + this.angVel) % 360;
-	//keep the direction bounded between 0 and 360
-	if (this.dir < 0) {
-		this.dir += 360;
-	}
-	
-	//hard stop if we pass the desired direction due to mathematical imprecision
-	//if (rot )
 }
 
 /**
@@ -71,7 +49,7 @@ Actor.prototype.approachWantDir = function() {
  */
 Actor.prototype.approachDestination = function(destX, destY,amt) {
 	var remDist = getDistance(this.x,this.y,destX,destY);
-	if (remDist > this.accel*100 * deltaTime) {
+	if (remDist >this.fullSpeed * deltaTime) {
 		//we cannot reach our destination yet, so simply move towards the destination
 		this.updateWantDir(getAngle(this.x,this.y,destX,destY));
 		this.moveForward(amt);
@@ -98,7 +76,7 @@ Actor.prototype.evade = function() {
 			return this.evade();
 		}
 		//we are not within range, so move towards home
-		this.approachDestination(this.home.x,this.home.y,this.accel*100);
+		this.approachDestination(this.home.x,this.home.y,this.fullSpeed);
 	}
 	else {
 		//we are alerted; check if we should stop being alerted, and if not, continue evading the target
@@ -109,7 +87,7 @@ Actor.prototype.evade = function() {
 		}	
 		//we are still in range of the target; continue evading
 		this.updateWantDir(180 + getAngle(this.x,this.y,this.target.x,this.target.y));
-		this.moveForward(this.accel*140);
+		this.moveForward(this.fullSpeed);
 	}
 }
 
@@ -125,7 +103,7 @@ Actor.prototype.pursue = function() {
 			return this.pursue();
 		}
 		//we are not within range, so move towards home
-		this.approachDestination(this.home.x,this.home.y,this.accel*90);
+		this.approachDestination(this.home.x,this.home.y,this.fullSpeed);
 	}
 	else {
 		//we are alerted; check if we should stop being alerted, and if not, continue pursuing the target
@@ -136,7 +114,7 @@ Actor.prototype.pursue = function() {
 		}	
 		//we are still in range of the target; continue pursuing
 		this.updateWantDir(getAngle(this.x,this.y,this.target.x,this.target.y));
-		this.moveForward(this.accel*115);
+		this.moveForward(this.fullSpeed);
 	}
 }
 
@@ -166,7 +144,7 @@ Actor.prototype.followPath = function() {
 	if (this.nextPoint == null) {
 		this.nextPoint = this.findClosestPoint();
 	}
-	var moveRemaining = this.accel*200 * deltaTime;
+	var moveRemaining = this.fullSpeed * deltaTime;
 	while (moveRemaining > 0) {
 		var destX = this.path.points[this.nextPoint][0];
 		var destY = this.path.points[this.nextPoint][1];
@@ -220,7 +198,7 @@ Actor.prototype.wander = function() {
 		this.wanderTimer += this.wanderMaxTimer;
 	}
 	this.updateWantDir(getAngle(this.x,this.y,this.dest.x,this.dest.y));
-	this.moveForward(this.accel*100);
+	this.moveForward(this.fullSpeed);
 }
 
 /**
@@ -244,27 +222,23 @@ Actor.prototype.moveForward = function(amt,isAbsolute) {
  * @param imageName: the image name which represents this Actor
  * @param cnv: the canvas to which this actor belongs
  * @param rot: the starting rotation (in degrees) of the actor
- * @param accel: the rate of acceleration/deceleration of the actor
- * @param maxVel: the maximum velocity of the actor
- * @param angAccel: the rate of angular acceleration/deceleration of the actor
- * @param maxAngVel: the maximum angular velocity of the actor
+ * @param slowSpeed: the rate at which an actor moves while within the slow radius
+ * @param fullSpeed: the rate at which an actor moves while outside of the slow radius
+ * @param angSpeed: the rate at which an actor turns
  */
-function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, maxAngVel) {
+function Actor(x,y,imageName,cnv,rot,slowSpeed, fullSpeed, angSpeed) {
 	//set some reasonable default values for the optional args
 	if (rot == null) {
 		rot = 0;
 	}
-	if (accel == null) {
-		accel = 1;
+	if (slowSpeed == null) {
+		slowSpeed = 50;
 	}
-	if (maxVel == null) {
-		maxVel = 10;
+	if (fullSpeed == null) {
+		fullSpeed = 100;
 	}
-	if (angAccel == null) {
-		angAccel = 10;
-	}
-	if (maxAngVel == null) {
-		maxAngVel = 6;
+	if (angSpeed == null) {
+		angSpeed = 360;
 	}
 	
 	//initialize all of our properties
@@ -272,23 +246,21 @@ function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, maxAngVel) {
 	this.y = y;
 	this.imageName = imageName;
 	this.canvas = cnv;
+	
+	this.fullSpeed = fullSpeed;
+	this.slowSpeed = slowSpeed;
+	
 	this.dir = rot;
 	this.wantDir = rot;
-	this.startDir = rot;
-	this.accel = accel;
-	this.maxVel = maxVel;
-	this.angAccel = angAccel;
-	this.maxAngVel = maxAngVel;
-	this.vel = 0;
-	this.angVel = 0;
-	
+	this.angSpeed = angSpeed;
+		
 	//state related vars
 	this.state = "wander";
 	this.wanderRadius = 40;
 	this.wanderDistance = 125;
 	this.dest = null;
 	this.wanderTimer = 0;
-	this.wanderMaxTimer = 2;
+	this.wanderMaxTimer = .6;
 	this.wanderCenter = null;
 	this.maxPursueDistance = 150;
 	this.alertPursueDistance = 100;

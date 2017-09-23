@@ -7,7 +7,7 @@ makeChild("Knight","Actor");
  * @param cnv: the canvas to which this actor belongs
  */
 function Knight(x,y,cnv) {
-	Actor.call(this,x,y,"knight.png",cnv);
+	Actor.call(this,x,y,"knight.png",cnv,0,50,100);
 	this.debugColor = "#BBBBBB";
 	this.state = "evade";
 	this.target = null;

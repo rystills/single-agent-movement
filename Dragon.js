@@ -7,7 +7,7 @@ makeChild("Dragon","Actor");
  * @param cnv: the canvas to which this actor belongs
  */
 function Dragon(x,y,cnv) {
-	Actor.call(this,x,y,"dragon.png",cnv);
+	Actor.call(this,x,y,"dragon.png",cnv,0,40,80);
 	this.debugColor = "#22FF00";
 	this.state = "pursue";
 	this.target = null;
