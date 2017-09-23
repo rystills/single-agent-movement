@@ -12,7 +12,7 @@ Actor.prototype.update = function() {
  */
 Actor.prototype.updateWantDir = function(newDir) {
 	this.wantDir = newDir%360;
-	while (this.wantDir < 0) {
+	if (this.wantDir < 0) {
 		this.wantDir += 360;
 	}
 }
@@ -23,9 +23,9 @@ Actor.prototype.updateWantDir = function(newDir) {
 Actor.prototype.approachWantDir = function() {
 	if (this.wantDir != this.dir) {
 		//first, determine whether it is faster to turn clockwise, or counter-clockwise
-		var rotDir = -1;
-		if (this.dir + 180 < this.wantDir) {
-			rotDir = 1;
+		var rotDir = 1;
+		if (this.startDir + 180 < this.wantDir) {
+			rotDir = -1;
 		}
 		//if we've passed the halfway point, start decelerating, otherwise, accelerate
 		var halfwayCondition = (rotDir == 1 ? 
@@ -39,16 +39,27 @@ Actor.prototype.approachWantDir = function() {
 		}
 	}
 	
-	if (this.state == "wander") {
+	//keep angular velocity bounded between -maxAngVel and +maxAngVel
+	if (this.angVel < -1*this.maxAngVel) {
+		this.angVel = -1*this.maxAngVel;
+	}
+	else if (this.angVel > this.axAngVel) {
+		this.angVel = this.maxAngVel;
+	}
+	
+	if (this.state == "follow path") {
 		console.log("dir: " + this.dir + ", wantDir: " + this.wantDir + ", angVel: " + this.angVel);
 	}
 	
 	//finally, update our direction based on our angular velocity
 	this.dir = (this.dir + this.angVel) % 360;
 	//keep the direction bounded between 0 and 360
-	while (this.dir < 0) {
+	if (this.dir < 0) {
 		this.dir += 360;
 	}
+	
+	//hard stop if we pass the desired direction due to mathematical imprecision
+	//if (rot )
 }
 
 /**
@@ -236,9 +247,9 @@ Actor.prototype.moveForward = function(amt,isAbsolute) {
  * @param accel: the rate of acceleration/deceleration of the actor
  * @param maxVel: the maximum velocity of the actor
  * @param angAccel: the rate of angular acceleration/deceleration of the actor
- * @param angMaxVel: the maximum angular velocity of the actor
+ * @param maxAngVel: the maximum angular velocity of the actor
  */
-function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
+function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, maxAngVel) {
 	//set some reasonable default values for the optional args
 	if (rot == null) {
 		rot = 0;
@@ -252,8 +263,8 @@ function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	if (angAccel == null) {
 		angAccel = 10;
 	}
-	if (angMaxVel == null) {
-		angMaxVel = 100;
+	if (maxAngVel == null) {
+		maxAngVel = 6;
 	}
 	
 	//initialize all of our properties
@@ -267,7 +278,7 @@ function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.accel = accel;
 	this.maxVel = maxVel;
 	this.angAccel = angAccel;
-	this.angMaxVel = angMaxVel;
+	this.maxAngVel = maxAngVel;
 	this.vel = 0;
 	this.angVel = 0;
 	
@@ -277,7 +288,7 @@ function Actor(x,y,imageName,cnv,rot,accel, maxVel, angAccel, angMaxVel) {
 	this.wanderDistance = 125;
 	this.dest = null;
 	this.wanderTimer = 0;
-	this.wanderMaxTimer = 1;
+	this.wanderMaxTimer = 2;
 	this.wanderCenter = null;
 	this.maxPursueDistance = 150;
 	this.alertPursueDistance = 100;
