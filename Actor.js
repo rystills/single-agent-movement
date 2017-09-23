@@ -18,7 +18,7 @@ Actor.prototype.updateWantDir = function(newDir) {
 }
 
 /**
- * update dir towards wantDir angSpeed
+ * update dir towards wantDir at a rate of angSpeed
  */
 Actor.prototype.approachWantDir = function() {
 	if (this.wantDir != this.dir) {
@@ -45,14 +45,15 @@ Actor.prototype.approachWantDir = function() {
  * @param destX: the x coordinate to move towards
  * @param destY: the y coordinate to move towards
  * @param amt: the amount by which to move
+ * @param absolute: whether to ignore deltaTime (true) or not (false)
  * @returns whether we reached the destination (true) or not (false)
  */
-Actor.prototype.approachDestination = function(destX, destY,amt) {
+Actor.prototype.approachDestination = function(destX, destY,amt,absolute) {
 	var remDist = getDistance(this.x,this.y,destX,destY);
 	if (remDist >this.fullSpeed * deltaTime) {
 		//we cannot reach our destination yet, so simply move towards the destination
 		this.updateWantDir(getAngle(this.x,this.y,destX,destY));
-		this.moveForward(amt);
+		this.moveForward(amt,absolute);
 		return false;
 	}
 	else {
@@ -152,19 +153,13 @@ Actor.prototype.followPath = function() {
 		
 		//if moving forward will bring us past the point, move to it, update direction, and move the remaining distance
 		var remDist = getDistance(this.x,this.y,destX,destY);
-		var maxDist = moveRemaining;
-		
-		if (remDist > maxDist) {
-			//moving forward will not put us at or past the point
-			this.moveForward(moveRemaining,true);	
-			moveRemaining = 0;
-		}
-		else {
-			//moving forward will get us to the point
-			this.x = destX;
-			this.y = destY;
+		if (this.approachDestination(destX,destY,moveRemaining,true)) {
+			//we reached the point; subtract the distance we traveled from our total movement and choose the next point
 			moveRemaining -= remDist;
 			this.nextPoint = (this.nextPoint + 1) % this.path.points.length;
+		}
+		else {
+			moveRemaining = 0;
 		}
 	}
 }
@@ -247,28 +242,37 @@ function Actor(x,y,imageName,cnv,rot,slowSpeed, fullSpeed, angSpeed) {
 	this.imageName = imageName;
 	this.canvas = cnv;
 	
+	//movement vars
 	this.fullSpeed = fullSpeed;
 	this.slowSpeed = slowSpeed;
 	
+	//angular vars
 	this.dir = rot;
 	this.wantDir = rot;
 	this.angSpeed = angSpeed;
 		
 	//state related vars
-	this.state = "wander";
+	this.state = "static";
+	
+	//wander vars
 	this.wanderRadius = 40;
 	this.wanderDistance = 125;
-	this.dest = null;
 	this.wanderTimer = 0;
 	this.wanderMaxTimer = .6;
 	this.wanderCenter = null;
-	this.maxPursueDistance = 150;
-	this.alertPursueDistance = 100;
-	this.alertEvadeDistance = 80;
-	this.maxEvadeDistance = 260;
+	this.dest = null;
+	
+	//pursue/evade vars
+	this.maxPursueDistance = 170;
+	this.alertPursueDistance = 120;
+	
+	this.alertEvadeDistance = 100;
+	this.maxEvadeDistance = 230;
+	
 	this.alerted = false;
 	this.target = null;
 	this.home = null;
+	
 	//keep a list of our update methods based on current state, to simplify update logic
 	this.stateMethods = {"wander":"wander", "pursue": "pursue",	"evade":"evade","follow path":"followPath"};
 }
