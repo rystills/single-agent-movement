@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <body style="background-color:#E6E6FA">
-	<div id="canvasTopDiv" align="center" style="line-height: 1 line-width: 1">
-		<canvas id="topLeft" width="800" height="400"></canvas>
-		<canvas id="topRight" width="800" height="400"></canvas>
-	</div>
-	<div id="canvasBotDiv" align="center">
-		<canvas id="botLeft" width="800" height="400"></canvas>
-		<canvas id="botRight" width="800" height="400"></canvas>
+	<div id="canvasDiv" align="center">
+		<div id="canvasTopDiv" style="line-height: 1 line-width: 1">
+			<canvas id="topLeft" width="800" height="800">
+			</canvas><canvas id="topRight" width="800" height="400" style="position:absolute">
+			</canvas><canvas id="botRight" width="800" height="400"></canvas>
+		</div>
 	</div>
 	<script src="main.js"></script>
 </body>

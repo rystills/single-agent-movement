@@ -18,7 +18,6 @@ function setupKeyListeners() {
 	mousePressedRight = false;
 	topLeft.mousePos = {x:0,y:0};
 	topRight.mousePos = {x:0,y:0};
-	botLeft.mousePos = {x:0,y:0};
 	botRight.mousePos = {x:0,y:0};
 	
 	document.body.addEventListener("mousemove", function (e) {
@@ -139,10 +138,7 @@ function clearScreen() {
 	topRightCtx.fillStyle="rgb(140,20,255)";
 	topRightCtx.fillRect(0,0,topRight.width,topRight.height);
 	
-	botLeftCtx.fillStyle="rgb(35,150,35)";
-	botLeftCtx.fillRect(0,0,botLeft.width,botLeft.height);
-	
-	botRightCtx.fillStyle="#000000";
+	botRightCtx.fillStyle="rgb(35,150,35)";
 	botRightCtx.fillRect(0,0,botRight.width,botRight.height);
 }
 
@@ -233,7 +229,7 @@ function render() {
 	
 	//draw background tiles covering the entire screen (1 tile buffer to make scrolling seamless)
 	//ignore the final canvas, as the UI should not scroll
-	for (var j = 0; j < canvases.length-1; ++j) {
+	for (var j = 0; j < canvases.length; ++j) {
 		var scrollX = canvases[j].scrollX;
 		var scrollY = canvases[j].scrollY;
 		var negX = Math.sign(scrollX) == -1;
@@ -243,26 +239,6 @@ function render() {
 				contexts[j].drawImage(images["tileGrayscale.png"],i*200 - (scrollX % 200),r*200 - (scrollY % 200));
 			}
 		}
-	}
-	
-	//draw a darkened bar to make the GUI more readable
-	/*botRightCtx.fillStyle = "rgba(0,0,0,.5)";
-	botRightCtx.fillRect(0,0,botRight.width,40);*/
-	
-	//display each npc's current algorithm
-	botRightCtx.font = "30px Arial";
-	var textHeight = 30;
-	botRightCtx.fillStyle = "#FFFFFF";
-	
-	for (var i = 0; i < objects.length; ++i) {
-		var state = objects[i].state;
-		if ((objects[i].state == "pursue" || objects[i].state == "evade") && objects[i].alerted == false) {
-			state = (objects[i].inSlowRadius() ? "dynamic arrive" : "approaching gold");
-		}
-		else if (objects[i].state == "follow path") {
-			state = (objects[i].inSlowRadius() ? "dynamic arrive" : "follow path");
-		}
-		botRightCtx.fillText(objects[i].imageName.split(".")[0] + " algorithm: " + state,5,textHeight * (i+1));	
 	}
 	
 	//display info about each npc's current algorithm
@@ -345,6 +321,34 @@ function render() {
 				objects[i].x - objects[i].canvas.scrollX,objects[i].y - objects[i].canvas.scrollY,objects[i].dir);
 	}
 	
+	//draw a darkened bar at the top of each canvas to make the GUI more readable
+	for (var i = 0; i < canvases.length; ++i) {
+		contexts[i].fillStyle = "rgba(0,0,0,.5)";
+		//draw a double height bar for the first canvas, as it must display two objects' algorithms at once
+		contexts[i].fillRect(0,0,canvases[i].width,i == 0 ? 80 : 40);
+		contexts[i].font = "30px Arial";
+		contexts[i].fillStyle = "#FFFFFF";
+	}
+	
+	//display each npc's current algorithm
+	var textHeight = 30;	
+	for (var i = 0; i < objects.length; ++i) {
+		var state = objects[i].state;
+		//no need to display an algorithm for static objects
+		if (state == "static") {
+			continue;
+		}
+		//in the case of pursue, evade, and follow path algorithms, check if we are perforrming a dynamic arrive
+		if ((objects[i].state == "pursue" || objects[i].state == "evade") && objects[i].alerted == false) {
+			state = (objects[i].inSlowRadius() ? "dynamic arrive" : "approaching gold");
+		}
+		else if (objects[i].state == "follow path") {
+			state = (objects[i].inSlowRadius() ? "dynamic arrive" : "follow path");
+		}
+		//finally, display the determined algorithm for this object
+		objects[i].canvas.getContext("2d").fillText(
+				objects[i].imageName.split(".")[0] + " algorithm: " + state,5,30*(i==2?2:1));
+	}
 }
 
 /**
@@ -414,12 +418,10 @@ function initCanvases() {
 	topLeftCtx = topLeft.getContext("2d");
 	topRight = document.getElementById("topRight");
 	topRightCtx = topRight.getContext("2d");
-	botLeft = document.getElementById("botLeft");
-	botLeftCtx = botLeft.getContext("2d");
-	botRight= document.getElementById("botRight");
+	botRight = document.getElementById("botRight");
 	botRightCtx = botRight.getContext("2d");
-	canvases = [topLeft,topRight,botLeft,botRight];
-	contexts = [topLeftCtx,topRightCtx,botLeftCtx,botRightCtx];
+	canvases = [topLeft,topRight,botRight];
+	contexts = [topLeftCtx,topRightCtx,botRightCtx];
 	
 	//reset camera position for all canvases
 	for (var i = 0; i < canvases.length; ++i) {
@@ -455,7 +457,7 @@ function initGlobals() {
 	objects[1].home = objects[0];
 	objects[2].home = objects[0];
 	objects.push(new Bat(100,300,topRight));
-	objects.push(new Arrow(200,200,botLeft));
+	objects.push(new Arrow(200,200,botRight));
 }
 
 initCanvases();

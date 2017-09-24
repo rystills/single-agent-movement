@@ -138,6 +138,17 @@ Actor.prototype.findClosestPoint = function() {
 }
 
 /**
+ * predict the expected location of the target to cut them off
+ */
+Actor.prototype.getExpectedTargetLocation = function() {
+	//don't do anything if we aren't currently in a pursuit
+	if (!this.alerted) {
+		return;
+	}
+	//this.target.location * this.target.speed * (distance*time)
+}
+
+/**
  * check if this actor is currently in one of its slow radii
  * @returns whether this actor is in a slow radius (true) or not (false)
  */
