@@ -257,7 +257,10 @@ function render() {
 	for (var i = 0; i < objects.length; ++i) {
 		var state = objects[i].state;
 		if ((objects[i].state == "pursue" || objects[i].state == "evade") && objects[i].alerted == false) {
-			state = "approaching gold";
+			state = (objects[i].inSlowRadius() ? "dynamic arrive" : "approaching gold");
+		}
+		else if (objects[i].state == "follow path") {
+			state = (objects[i].inSlowRadius() ? "dynamic arrive" : "follow path");
 		}
 		botRightCtx.fillText(objects[i].imageName.split(".")[0] + " algorithm: " + state,5,textHeight * (i+1));	
 	}

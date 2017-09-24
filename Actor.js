@@ -77,7 +77,7 @@ Actor.prototype.evade = function() {
 			return this.evade();
 		}
 		//we are not within range, so move towards home
-		this.approachDestination(this.home.x,this.home.y,this.fullSpeed);
+		this.approachDestination(this.home.x,this.home.y,this.inSlowRadius() ? this.slowSpeed : this.fullSpeed);
 	}
 	else {
 		//we are alerted; check if we should stop being alerted, and if not, continue evading the target
@@ -104,7 +104,7 @@ Actor.prototype.pursue = function() {
 			return this.pursue();
 		}
 		//we are not within range, so move towards home
-		this.approachDestination(this.home.x,this.home.y,this.fullSpeed);
+		this.approachDestination(this.home.x,this.home.y,this.inSlowRadius() ? this.slowSpeed : this.fullSpeed);
 	}
 	else {
 		//we are alerted; check if we should stop being alerted, and if not, continue pursuing the target
@@ -143,10 +143,8 @@ Actor.prototype.findClosestPoint = function() {
  */
 Actor.prototype.inSlowRadius = function() {
 	if (this.state  == "follow path") {
-		return ((getDistance(this.x,this.y,this.path.points[this.nextPoint][0],
-				this.path.points[this.nextPoint][1]) <= this.slowRadius) ||
-				(getDistance(this.x,this.y,this.path.points[this.prevPoint][0],
-						this.path.points[this.prevPoint][1]) <= this.slowRadius));
+		return (getDistance(this.x,this.y,this.path.points[this.nextPoint][0],
+				this.path.points[this.nextPoint][1]) <= this.slowRadius);
 	}
 	if (this.state  == "pursue" || this.state == "evade") {
 		return (getDistance(this.x,this.y,this.home.x,this.home.y) <= this.slowRadius);
