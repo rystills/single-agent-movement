@@ -11,5 +11,5 @@ function Dragon(x,y,cnv) {
 	this.debugColor = "#22FF00";
 	this.state = "pursue";
 	this.target = null;
-	this.slowRadius = 75;
+	this.slowRadius = 85;
 }

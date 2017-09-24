@@ -228,7 +228,6 @@ function render() {
 	clearScreen();
 	
 	//draw background tiles covering the entire screen (1 tile buffer to make scrolling seamless)
-	//ignore the final canvas, as the UI should not scroll
 	for (var j = 0; j < canvases.length; ++j) {
 		var scrollX = canvases[j].scrollX;
 		var scrollY = canvases[j].scrollY;
@@ -321,6 +320,23 @@ function render() {
 				objects[i].x - objects[i].canvas.scrollX,objects[i].y - objects[i].canvas.scrollY,objects[i].dir);
 	}
 	
+	//draw "expected target locations" on top of objects
+	for (var i = 0; i < objects.length; ++i) {
+		//draw the expected target location if this object is in pursuit
+		if (objects[i].state == "pursue" && objects[i].alerted) {
+			var ctx = objects[i].canvas.getContext("2d");
+			var scrollX = objects[i].canvas.scrollX;
+			var scrollY = objects[i].canvas.scrollY;
+			
+			ctx.fillStyle = "#00BB00";
+			ctx.beginPath();
+			ctx.arc(objects[i].predictedX-scrollX,objects[i].predictedY-scrollY,
+					15,0,2*Math.PI);
+			ctx.fill();
+			ctx.closePath();
+		}	
+	}
+	
 	//draw a darkened bar at the top of each canvas to make the GUI more readable
 	for (var i = 0; i < canvases.length; ++i) {
 		contexts[i].fillStyle = "rgba(0,0,0,.5)";
@@ -347,7 +363,7 @@ function render() {
 		}
 		//finally, display the determined algorithm for this object
 		objects[i].canvas.getContext("2d").fillText(
-				objects[i].imageName.split(".")[0] + " algorithm: " + state,5,30*(i==2?2:1));
+				objects[i].imageName.split(".")[0] + " algorithm: " + state,5,-10+(textHeight+10)*(i==2?2:1));
 	}
 }
 

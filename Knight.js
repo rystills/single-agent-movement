@@ -11,5 +11,5 @@ function Knight(x,y,cnv) {
 	this.debugColor = "#BBBBBB";
 	this.state = "evade";
 	this.target = null;
-	this.slowRadius = 100;
+	this.slowRadius = 110;
 }

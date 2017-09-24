@@ -7,7 +7,7 @@ makeChild("Arrow","Actor");
  * @param cnv: the canvas to which this actor belongs
  */
 function Arrow(x,y,cnv) {
-	Actor.call(this,x,y,"arrow.png",cnv,0,130,200);
+	Actor.call(this,x,y,"arrow.png",cnv,0,110,200);
 	this.debugColor = "#DD4400";
 	this.state = "follow path";
 	this.path = new Path([[10,10],[300,50],[-100,500], [300,250],[-225,240],[-450,280]],true);

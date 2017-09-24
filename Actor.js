@@ -5,6 +5,7 @@ Actor.prototype.update = function() {
 	//run the named method corresponding to our current state
 	eval("this.state == 'static' ? '': this." + this.stateMethods[this.state] + "();");
 	this.approachWantDir();
+	this.getExpectedTargetLocation();
 }
 
 /**
@@ -142,10 +143,19 @@ Actor.prototype.findClosestPoint = function() {
  */
 Actor.prototype.getExpectedTargetLocation = function() {
 	//don't do anything if we aren't currently in a pursuit
-	if (!this.alerted) {
+	if (!(this.state == "pursue" && this.alerted)) {
 		return;
 	}
-	//this.target.location * this.target.speed * (distance*time)
+	//grab the target attributes
+	var tx = this.target.x;
+	var ty = this.target.y;
+	var ts = this.target.fullSpeed;
+	var td = this.target.dir;
+	var dist = getDistance(this.x,this.y,tx,ty);
+	
+	//the predicted location will be (distance/fullSpeed) seconds in front of the target
+	this.predictedX = tx + Math.cos(td * Math.PI/180) * ts * (dist/this.fullSpeed);
+	this.predictedY = ty + Math.sin(td * Math.PI/180) * ts * (dist/this.fullSpeed);
 }
 
 /**
@@ -295,7 +305,7 @@ function Actor(x,y,imageName,cnv,rot,slowSpeed, fullSpeed, angSpeed) {
 	this.alertPursueDistance = 120;
 	
 	this.alertEvadeDistance = 100;
-	this.maxEvadeDistance = 230;
+	this.maxEvadeDistance = 250;
 	
 	this.alerted = false;
 	this.target = null;

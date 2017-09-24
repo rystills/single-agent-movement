@@ -7,7 +7,7 @@ makeChild("Bat","Actor");
  * @param cnv: the canvas to which this actor belongs
  */
 function Bat(x,y,cnv) {
-	Actor.call(this,x,y,"bat.png",cnv);
+	Actor.call(this,x,y,"bat.png",cnv,null,null,null,60);
 	this.debugColor = "#DD4400";
 	this.state = "wander";
 }
