@@ -138,14 +138,31 @@ Actor.prototype.findClosestPoint = function() {
 }
 
 /**
+ * check if this actor is currently in one of its slow radii
+ * @returns whether this actor is in a slow radius (true) or not (false)
+ */
+Actor.prototype.inSlowRadius = function() {
+	if (this.state  == "follow path") {
+		return ((getDistance(this.x,this.y,this.path.points[this.nextPoint][0],
+				this.path.points[this.nextPoint][1]) <= this.slowRadius) ||
+				(getDistance(this.x,this.y,this.path.points[this.prevPoint][0],
+						this.path.points[this.prevPoint][1]) <= this.slowRadius));
+	}
+	if (this.state  == "pursue" || this.state == "evade") {
+		return (getDistance(this.x,this.y,this.home.x,this.home.y) <= this.slowRadius);
+	}
+	return false;
+}
+
+/**
  * move towards the next point on this Actor's path
  */
 Actor.prototype.followPath = function() {
 	//if we just started following this path, hop onto the closest point
 	if (this.nextPoint == null) {
-		this.nextPoint = this.findClosestPoint();
+		this.prevPoint = this.nextPoint = this.findClosestPoint();
 	}
-	var moveRemaining = this.fullSpeed * deltaTime;
+	var moveRemaining = (this.inSlowRadius() ? this.slowSpeed : this.fullSpeed) * deltaTime;
 	while (moveRemaining > 0) {
 		var destX = this.path.points[this.nextPoint][0];
 		var destY = this.path.points[this.nextPoint][1];
@@ -156,6 +173,7 @@ Actor.prototype.followPath = function() {
 		if (this.approachDestination(destX,destY,moveRemaining,true)) {
 			//we reached the point; subtract the distance we traveled from our total movement and choose the next point
 			moveRemaining -= remDist;
+			this.prevPoint = this.nextPoint;
 			this.nextPoint = (this.nextPoint + 1) % this.path.points.length;
 		}
 		else {
@@ -245,6 +263,7 @@ function Actor(x,y,imageName,cnv,rot,slowSpeed, fullSpeed, angSpeed) {
 	//movement vars
 	this.fullSpeed = fullSpeed;
 	this.slowSpeed = slowSpeed;
+	this.slowRadius = 0;
 	
 	//angular vars
 	this.dir = rot;
