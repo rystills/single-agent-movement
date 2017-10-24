@@ -176,13 +176,13 @@ function update() {
 	//update the deltaTime
 	updateTime();
 	
-	//if the user is pressing the arrow keys or WASD, scroll the view
-	checkScroll();
-	
 	//update objects
 	for (var i = 0; i < objects.length; ++i) {
 		objects[i].update();
 	}
+	
+	//if the user is pressing the arrow keys or WASD, scroll the view
+	checkScroll();
 	
 	//once all updates are out of the way, render the frame
 	render();
